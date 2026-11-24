@@ -215,6 +215,16 @@
   .nota-item small { display: block; color: var(--gris); font-size: 12px; margin-top: 3px; }
   .notas-vacio { color: var(--gris); font-size: 13.5px; padding: 12px 14px; }
   .sep { height: 1px; background: var(--borde); margin: 18px 0 4px; }
+  .link-admin { font: inherit; font-size: 13px; color: var(--gris); background: none; border: 0; padding: 0; margin-top: 14px;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .admin-bar { display: none; margin-top: 14px; align-items: center; justify-content: space-between; gap: 10px;
+    background: #1e293b; color: #fff; border-radius: 12px; padding: 10px 12px 10px 14px; font-size: 13.5px; }
+  .admin-bar.on { display: flex; }
+  .admin-bar button { font: inherit; font-size: 13px; font-weight: 600; background: rgba(255,255,255,.14); color: #fff; border: 0;
+    border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  .pin-input { text-align: center; font-size: 24px !important; letter-spacing: 8px; padding: 14px !important; }
+  .solo-admin { font-size: 13px; color: var(--gris); background: #f8fafc; border: 1px dashed var(--borde); border-radius: 12px;
+    padding: 11px 14px; margin-top: 4px; }
   footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
@@ -252,6 +262,8 @@
         <select id="vendedor"></select>
       </div>
       <div class="error-campo" id="e_vendedor">Selecciona tu nombre.</div>
+      <div class="admin-bar" id="adminBar"><span>🔑 Modo administrador · <b id="adminNombre"></b></span><button type="button" id="btnSalirAdmin">Salir</button></div>
+      <button type="button" class="link-admin" id="btnAdmin">🔑 Acceso administrador</button>
       <div class="aviso rojo" id="sinRuta"><b>Este vendedor no tiene rutas asignadas.</b><br>Pide al administrador que te asigne tu ruta para poder registrar o buscar clientes.</div>
     </section>
 
@@ -399,6 +411,20 @@
     </div>
   </div>
 
+  <div class="modal" id="modalPin">
+    <div class="hoja" role="dialog" aria-modal="true" style="max-width:420px">
+      <div class="asa"></div>
+      <h3>Acceso administrador</h3>
+      <p class="sub">Escribe tu PIN para activar o inactivar clientes y ver todas las rutas.</p>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN" class="sin-ic pin-input">
+      <div class="aviso rojo" id="pinError"></div>
+      <div class="hoja-btns">
+        <button type="button" class="btn btn-sec" id="btnPinCancelar">Cancelar</button>
+        <button type="button" class="btn btn-pri" id="btnPinEntrar">Entrar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="modalCli">
     <div class="hoja" role="dialog" aria-modal="true">
       <div class="asa"></div>
@@ -461,13 +487,18 @@ function iniciar(cfg) {
   var v = $('vendedor'), actual = v.value || leerLocal('vendedor');
   v.innerHTML = '<option value="">— Selecciona tu nombre —</option>' + cfg.vendedores.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
   if (cfg.vendedores.indexOf(actual) >= 0) v.value = actual;
-  aplicarVendedor();
+  pintarAdmin();
   $('cardCarga').style.display = 'none';
   $('formulario').style.display = 'block';
 }
 
 /** Según el vendedor, muestra solo sus rutas asignadas (si tiene una sola, queda fija). */
+var ADMIN_PIN = '', ADMIN_NOMBRE = '';
 function aplicarVendedor() {
+  aplicarVendedorBase();
+  if (ADMIN_NOMBRE) { ocultar('sinRuta'); $('contenido').classList.remove('bloqueado'); }
+}
+function aplicarVendedorBase() {
   var v = $('vendedor').value, r = $('ruta'), previa = r.value || leerLocal('ruta');
   var nota = $('rutaNota');
   if (!v) {
@@ -699,6 +730,37 @@ Array.prototype.forEach.call(document.querySelectorAll('#chipsNota .chip'), func
   };
 });
 
+
+// ================= ADMINISTRADOR (PIN) =================
+function pintarAdmin() {
+  $('adminBar').classList.toggle('on', !!ADMIN_NOMBRE);
+  $('btnAdmin').style.display = ADMIN_NOMBRE ? 'none' : 'inline';
+  $('adminNombre').textContent = ADMIN_NOMBRE;
+  aplicarVendedor();
+}
+function salirAdmin() {
+  ADMIN_PIN = ''; ADMIN_NOMBRE = '';
+  try { sessionStorage.removeItem('adm'); } catch (e) {}
+  pintarAdmin(); ultimosRes = []; $('resultados').innerHTML = ''; $('q').value = '';
+}
+$('btnAdmin').onclick = function () { $('pin').value = ''; ocultar('pinError'); $('modalPin').classList.add('abierto'); setTimeout(function () { $('pin').focus(); }, 80); };
+$('btnPinCancelar').onclick = function () { $('modalPin').classList.remove('abierto'); };
+$('btnSalirAdmin').onclick = salirAdmin;
+$('pin').onkeydown = function (e) { if (e.key === 'Enter') $('btnPinEntrar').click(); };
+$('btnPinEntrar').onclick = function () {
+  var pin = $('pin').value.trim();
+  if (pin.length < 4) { $('pinError').textContent = 'El PIN tiene mínimo 4 dígitos.'; mostrar('pinError'); return; }
+  var b = this; b.disabled = true; b.textContent = 'Verificando…';
+  api('admin', { pin: pin }).then(function (r) {
+    b.disabled = false; b.textContent = 'Entrar';
+    if (!r.ok) { $('pinError').textContent = r.errores.join(' '); mostrar('pinError'); return; }
+    ADMIN_PIN = pin; ADMIN_NOMBRE = r.nombre;
+    try { sessionStorage.setItem('adm', JSON.stringify({ p: pin, n: r.nombre })); } catch (e) {}
+    $('modalPin').classList.remove('abierto'); pintarAdmin(); cambiarModo('buscar');
+  }).catch(function (e) { b.disabled = false; b.textContent = 'Entrar'; $('pinError').textContent = e.message; mostrar('pinError'); });
+};
+(function () { try { var a = JSON.parse(sessionStorage.getItem('adm') || 'null'); if (a) { ADMIN_PIN = a.p; ADMIN_NOMBRE = a.n; } } catch (e) {} if (CFG) pintarAdmin(); })();
+
 // ================= BUSCAR CLIENTE / ACTIVAR - INACTIVAR =================
 var filtroEst = '', seqCli = 0, timerCli = null, cliSel = null, ultimosRes = [];
 function cambiarModo(m) {
@@ -727,11 +789,11 @@ $('q').oninput = function () {
 function buscarCli() {
   var mio = ++seqCli;
   $('buscandoCli').style.display = 'block';
-  api('buscarClientes', { vendedor: $('vendedor').value, texto: $('q').value }).then(function (res) {
+  api('buscarClientes', { vendedor: $('vendedor').value, texto: $('q').value, pin: ADMIN_PIN }).then(function (res) {
     if (mio !== seqCli) return;
     $('buscandoCli').style.display = 'none';
     ultimosRes = res; pintarResultados();
-  }).catch(function (e) { if (mio === seqCli) { $('buscandoCli').style.display = 'none'; $('resultados').innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; } });
+  }).catch(function (e) { if (mio === seqCli) { $('buscandoCli').style.display = 'none'; if (/PIN/.test(e.message)) salirAdmin(); $('resultados').innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; } });
 }
 
 function pintarResultados() {
@@ -766,7 +828,10 @@ function abrirCliente(c) {
     '<label>Notas internas</label><div class="notas-lista" id="notasLista">' + htmlNotas(c.notas) + '</div>' +
     '<textarea id="nuevaNota" maxlength="500" placeholder="Agregar una nota sobre este cliente…" style="margin-top:10px"></textarea>' +
     '<button type="button" class="btn btn-sec" id="btnNota">Agregar nota</button><div class="sep"></div>';
-  if (ina) {
+  if (!ADMIN_NOMBRE) {
+    $('cliAccion').innerHTML = '<div class="solo-admin">🔒 Solo un administrador puede activar o inactivar clientes.</div>';
+    $('cliBtns').innerHTML = '<button type="button" class="btn btn-sec" id="btnCerrarCli" style="grid-column:1/-1">Cerrar</button>';
+  } else if (ina) {
     $('cliAccion').innerHTML = '<label for="notaEst">Nota (opcional)</label><textarea id="notaEst" maxlength="300" placeholder="Ej. Volvió a comprar el 3 de diciembre"></textarea>';
     $('cliBtns').innerHTML = '<button type="button" class="btn btn-sec" id="btnCerrarCli">Cerrar</button><button type="button" class="btn btn-verde" id="btnEst">Reactivar cliente</button>';
   } else {
@@ -777,7 +842,7 @@ function abrirCliente(c) {
   }
   $('btnCerrarCli').onclick = cerrarCliente;
   $('btnNota').onclick = agregarNota;
-  $('btnEst').onclick = function () { guardarEstatus(ina ? 'Activo' : 'Inactivo'); };
+  if ($('btnEst')) $('btnEst').onclick = function () { guardarEstatus(ina ? 'Activo' : 'Inactivo'); };
   $('modalCli').classList.add('abierto');
 }
 function htmlNotas(n) {
@@ -790,10 +855,10 @@ function agregarNota() {
   var t = $('nuevaNota').value.trim();
   if (t.length < 3) { $('cliError').textContent = 'Escribe la nota.'; mostrar('cliError'); return; }
   var b = $('btnNota'); b.disabled = true; b.textContent = 'Guardando…'; ocultar('cliError');
-  api('nota', { vendedor: $('vendedor').value, codigo: cliSel.codigo, nota: t }).then(function (r) {
+  api('nota', { vendedor: $('vendedor').value, codigo: cliSel.codigo, nota: t, pin: ADMIN_PIN }).then(function (r) {
     b.disabled = false; b.textContent = 'Agregar nota';
     if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); return; }
-    cliSel.notas = (cliSel.notas || []).concat([{ fecha: r.fecha, nota: t, por: $('vendedor').value }]);
+    cliSel.notas = (cliSel.notas || []).concat([{ fecha: r.fecha, nota: t, por: ADMIN_NOMBRE ? ADMIN_NOMBRE + ' (admin)' : $('vendedor').value }]);
     $('notasLista').innerHTML = htmlNotas(cliSel.notas); $('nuevaNota').value = '';
   }).catch(function (e) { b.disabled = false; b.textContent = 'Agregar nota'; $('cliError').textContent = 'Sin conexión: ' + e.message; mostrar('cliError'); });
 }
@@ -806,11 +871,11 @@ function guardarEstatus(nuevo) {
   if (nuevo === 'Inactivo' && !motivo) { $('cliError').textContent = 'Elige el motivo.'; mostrar('cliError'); return; }
   if (nuevo === 'Inactivo' && motivo === 'Otro' && nota.length < 3) { $('cliError').textContent = 'Escribe en la nota cuál es el motivo.'; mostrar('cliError'); return; }
   var b = $('btnEst'), original = b.innerHTML; b.disabled = true; b.textContent = 'Guardando…';
-  api('estatus', { vendedor: $('vendedor').value, codigo: cliSel.codigo, estatus: nuevo, motivo: motivo, nota: nota }).then(function (r) {
+  api('estatus', { pin: ADMIN_PIN, codigo: cliSel.codigo, estatus: nuevo, motivo: motivo, nota: nota }).then(function (r) {
     b.disabled = false; b.innerHTML = original;
-    if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); return; }
+    if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); if (r.pinInvalido) salirAdmin(); return; }
     cliSel.estatus = nuevo; cliSel.motivo = nuevo === 'Inactivo' ? motivo : ''; cliSel.nota = nuevo === 'Inactivo' ? nota : '';
-    cliSel.fechaEstatus = r.fecha || ''; cliSel.por = $('vendedor').value;
+    cliSel.fechaEstatus = r.fecha || ''; cliSel.por = r.por || ADMIN_NOMBRE;
     cerrarCliente(); pintarResultados();
   }).catch(function (e) { b.disabled = false; b.innerHTML = original; $('cliError').textContent = 'Sin conexión: ' + e.message; mostrar('cliError'); });
 }
