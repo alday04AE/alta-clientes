@@ -136,6 +136,34 @@
   .exito .codigo { font-size: 36px; font-weight: 800; color: var(--azul-osc); letter-spacing: .5px; margin: 4px 0 6px;
     font-variant-numeric: tabular-nums; }
   .exito #exitoDetalle { color: var(--gris); font-size: 14.5px; margin-bottom: 24px; }
+  select:disabled { opacity: 1; color: var(--texto); background-color: var(--azul-claro); border-color: #c7d4fb; font-weight: 600;
+    -webkit-text-fill-color: var(--texto); background-image: none; }
+  #rutaNota { color: var(--azul-osc); }
+
+  /* ---------- Ventana de confirmación ---------- */
+  .modal { position: fixed; inset: 0; z-index: 50; background: rgba(11,23,54,.55); display: none; align-items: flex-end; justify-content: center;
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .modal.abierto { display: flex; animation: fade .2s ease-out; }
+  .hoja { background: #fff; width: 100%; max-width: 600px; border-radius: 22px 22px 0 0; padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
+    max-height: 92vh; overflow-y: auto; animation: sube .25s cubic-bezier(.2,.8,.2,1); box-shadow: 0 -10px 40px rgba(0,0,0,.2); }
+  @media (min-width: 640px) { .modal { align-items: center; } .hoja { border-radius: 22px; } }
+  .asa { width: 40px; height: 5px; border-radius: 3px; background: #d6dbe5; margin: 0 auto 14px; }
+  .hoja h3 { margin: 0; font-size: 19px; letter-spacing: -.2px; }
+  .hoja .sub { margin: 4px 0 14px; color: var(--gris); font-size: 13.5px; }
+  .zona-box { background: linear-gradient(135deg, #2f5bea, #1e3fb8); color: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .zona-box .z { font-size: 22px; font-weight: 800; letter-spacing: .3px; }
+  .zona-box .d { font-size: 12.5px; opacity: .85; text-align: right; line-height: 1.35; }
+  .resumen { border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; }
+  .resumen .fila { display: flex; gap: 12px; padding: 11px 14px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+  .resumen .fila:last-child { border-bottom: 0; }
+  .resumen .k { color: var(--gris); width: 92px; flex: none; font-size: 13px; padding-top: 1px; }
+  .resumen .v { font-weight: 600; word-break: break-word; }
+  .hoja-btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 16px; }
+  .hoja-btns .btn-sec { margin: 0; }
+  .hoja-btns .btn-pri { padding: 14px; font-size: 16px; }
+  @keyframes sube { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
   footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
@@ -173,6 +201,7 @@
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a4 4 0 0 0 0-8H8a4 4 0 0 1 0-8h8"/></svg>
         <select id="ruta"></select>
       </div>
+      <div class="ayuda" id="rutaNota" style="display:none"></div>
       <div class="error-campo" id="e_ruta">Selecciona la ruta.</div>
 
       <label>Frecuencia de visita <span class="req">*</span></label>
@@ -259,6 +288,20 @@
     </div>
   </div>
 
+  <div class="modal" id="modal">
+    <div class="hoja" role="dialog" aria-modal="true">
+      <div class="asa"></div>
+      <h3>Confirma los datos</h3>
+      <p class="sub">Revisa que todo esté correcto antes de guardar</p>
+      <div class="zona-box" id="resZona"></div>
+      <div class="resumen" id="resumen"></div>
+      <div class="hoja-btns">
+        <button type="button" class="btn btn-sec" id="btnCorregir">Corregir</button>
+        <button type="button" class="btn btn-pri" id="btnConfirmar">Sí, guardar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="card exito" id="exito">
     <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
     <h2>Cliente registrado</h2>
@@ -302,23 +345,45 @@ function fallo(err) { mostrarError((err && err.servidor ? 'Error: ' : 'Sin conex
 (function () {
   var guardada = leerLocal('cfg');
   if (guardada) { try { iniciar(JSON.parse(guardada)); } catch (e) {} }
-  api('config').then(function (cfg) { guardarLocal('cfg', JSON.stringify(cfg)); if (!CFG) iniciar(cfg); else CFG = cfg; })
+  api('config').then(function (cfg) { guardarLocal('cfg', JSON.stringify(cfg)); iniciar(cfg); })
     .catch(function (e) { if (!CFG) $('cardCarga').textContent = 'No se pudo cargar (' + e.message + '). Revisa tu señal y recarga la página.'; });
 })();
 
 function iniciar(cfg) {
   CFG = cfg;
-  var v = $('vendedor');
-  v.innerHTML = '<option value="">— Selecciona —</option>' + cfg.vendedores.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
-  var r = $('ruta');
-  r.innerHTML = '<option value="">— Selecciona —</option>' + Object.keys(cfg.rutas).map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
-  var vg = leerLocal('vendedor'); if (cfg.vendedores.indexOf(vg) >= 0) v.value = vg;
-  var rg = leerLocal('ruta'); if (cfg.rutas[rg]) { r.value = rg; pintarFrecuencias(); }
+  var v = $('vendedor'), actual = v.value || leerLocal('vendedor');
+  v.innerHTML = '<option value="">— Selecciona tu nombre —</option>' + cfg.vendedores.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
+  if (cfg.vendedores.indexOf(actual) >= 0) v.value = actual;
+  aplicarVendedor();
   $('cardCarga').style.display = 'none';
   $('formulario').style.display = 'block';
 }
 
-$('vendedor').onchange = function () { guardarLocal('vendedor', this.value); ocultar('e_vendedor'); };
+/** Según el vendedor, muestra solo sus rutas asignadas (si tiene una sola, queda fija). */
+function aplicarVendedor() {
+  var v = $('vendedor').value, r = $('ruta'), previa = r.value || leerLocal('ruta');
+  var nota = $('rutaNota');
+  if (!v) {
+    r.innerHTML = '<option value="">Primero elige el vendedor</option>'; r.disabled = true;
+    nota.style.display = 'none'; frecuencia = ''; pintarFrecuencias(); return;
+  }
+  var asignadas = ((CFG.asignacion || {})[v] || []).filter(function (x) { return CFG.rutas[x]; });
+  var opciones = asignadas.length ? asignadas : Object.keys(CFG.rutas);
+  if (opciones.length === 1) {
+    r.innerHTML = '<option>' + esc(opciones[0]) + '</option>'; r.value = opciones[0]; r.disabled = true;
+  } else {
+    r.innerHTML = '<option value="">— Selecciona —</option>' + opciones.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
+    r.disabled = false; r.value = opciones.indexOf(previa) >= 0 ? previa : '';
+  }
+  nota.style.display = asignadas.length ? 'block' : 'none';
+  nota.textContent = asignadas.length === 1 ? 'Ruta asignada a ' + v + '.' : (asignadas.length ? 'Rutas asignadas a ' + v + '.' : '');
+  if (r.value !== previa) frecuencia = '';
+  guardarLocal('ruta', r.value);
+  if (r.value) ocultar('e_ruta');
+  pintarFrecuencias();
+}
+
+$('vendedor').onchange = function () { guardarLocal('vendedor', this.value); ocultar('e_vendedor'); aplicarVendedor(); };
 $('ruta').onchange = function () { guardarLocal('ruta', this.value); frecuencia = ''; pintarFrecuencias(); ocultar('e_ruta'); };
 
 function pintarFrecuencias() {
@@ -457,10 +522,30 @@ $('btnGuardar').onclick = function () {
 
   var dir = JSON.parse(JSON.stringify(direccion));
   if (!dir.colonia) dir.colonia = $('coloniaManual').value.trim();
-  var datos = { vendedor: $('vendedor').value, ruta: $('ruta').value, frecuencia: frecuencia,
-    nombre: $('nombre').value, encargado: $('encargado').value, telefono: tel, direccion: dir,
+  pendiente = { vendedor: $('vendedor').value, ruta: $('ruta').value, frecuencia: frecuencia,
+    nombre: $('nombre').value.trim(), encargado: $('encargado').value.trim(), telefono: tel, direccion: dir,
     confirmaDistinto: $('confirmaDistinto').checked, idEnvio: idEnvio };
+  abrirResumen(pendiente);
+};
 
+var pendiente = null;
+function abrirResumen(d) {
+  var f = ((CFG.rutas[d.ruta] || []).filter(function (x) { return x.frecuencia === d.frecuencia; })[0] || {});
+  $('resZona').innerHTML = '<div><div style="font-size:12px;opacity:.8">Ruta y frecuencia</div><div class="z">' + esc(d.ruta) + ' · ' + esc(d.frecuencia) +
+    '</div></div><div class="d">' + esc(f.dias || '') + '</div>';
+  var tel = d.telefono.replace(/^(\d{2})(\d{4})(\d{4})$/, '$1 $2 $3');
+  var filas = [['Negocio', d.nombre], ['Encargado', d.encargado], ['Teléfono', tel],
+    ['Dirección', d.direccion.calle + ' ' + d.direccion.numero], ['Colonia', d.direccion.colonia],
+    ['C.P. / Mpio.', d.direccion.cp + ' · ' + d.direccion.ciudad], ['Vendedor', d.vendedor]];
+  $('resumen').innerHTML = filas.map(function (x) { return '<div class="fila"><div class="k">' + esc(x[0]) + '</div><div class="v">' + esc(x[1]) + '</div></div>'; }).join('');
+  $('modal').classList.add('abierto');
+}
+function cerrarResumen() { $('modal').classList.remove('abierto'); }
+$('btnCorregir').onclick = cerrarResumen;
+$('modal').onclick = function (e) { if (e.target === this) cerrarResumen(); };
+$('btnConfirmar').onclick = function () { cerrarResumen(); if (pendiente) enviar(pendiente); };
+
+function enviar(datos) {
   var b = $('btnGuardar'); var original = b.innerHTML; b.disabled = true; b.innerHTML = '<span class="spinner" style="width:18px;height:18px;margin:0;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff"></span> Guardando…';
   api('guardar', datos).then(function (r) {
     b.disabled = false; b.innerHTML = original;
@@ -478,7 +563,7 @@ $('btnGuardar').onclick = function () {
       mostrarError(r.errores.map(esc).join('<br>'), true);
     }
   }).catch(function (e) { b.disabled = false; b.innerHTML = original; fallo(e); });
-};
+}
 
 $('btnOtro').onclick = function () {
   ['nombre', 'encargado', 'telefono', 'buscar'].forEach(function (id) { $(id).value = ''; });
