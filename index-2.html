@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Alta de clientes</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Roboto, Arial, sans-serif; margin: 0; background: #f1f3f4; color: #202124; }
+  header { background: #1a73e8; color: #fff; padding: 14px 16px; font-size: 18px; font-weight: 600; }
+  form { max-width: 560px; margin: 0 auto; padding: 12px; }
+  .card { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  label { display: block; font-weight: 600; font-size: 14px; margin: 10px 0 4px; }
+  label .req { color: #d93025; }
+  input, select { width: 100%; font-size: 16px; padding: 11px; border: 1px solid #c4c7c5; border-radius: 8px; background: #fff; }
+  input:focus, select:focus { outline: 2px solid #1a73e8; border-color: transparent; }
+  .ayuda { font-size: 12px; color: #5f6368; margin-top: 3px; }
+  .error-campo { font-size: 12px; color: #d93025; margin-top: 3px; display: none; }
+  .invalido { border-color: #d93025 !important; }
+  .frecuencias { display: flex; gap: 8px; flex-wrap: wrap; }
+  .frec { flex: 1 1 140px; border: 2px solid #c4c7c5; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; background: #fff; }
+  .frec b { display: block; font-size: 16px; }
+  .frec span { font-size: 12px; color: #5f6368; }
+  .frec.sel { border-color: #1a73e8; background: #e8f0fe; }
+  .sugerencias { border: 1px solid #c4c7c5; border-radius: 8px; margin-top: 4px; overflow: hidden; display: none; }
+  .sug { padding: 11px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; background: #fff; }
+  .sug:last-child { border-bottom: 0; }
+  .sug:active, .sug:hover { background: #e8f0fe; }
+  .sug.sin-num { color: #9aa0a6; }
+  .sug small { display: block; color: #d93025; }
+  .btn { width: 100%; font-size: 16px; padding: 13px; border: 0; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .btn-sec { background: #e8f0fe; color: #1a73e8; margin-top: 8px; }
+  .btn-pri { background: #1a73e8; color: #fff; }
+  .btn-pri:disabled { background: #9aa0a6; }
+  .elegida { display: none; border: 2px solid #188038; border-radius: 8px; padding: 10px; margin-top: 8px; background: #e6f4ea; }
+  .elegida table { width: 100%; font-size: 14px; border-collapse: collapse; }
+  .elegida td { padding: 3px 4px; vertical-align: top; }
+  .elegida td:first-child { color: #5f6368; width: 90px; }
+  .elegida iframe { width: 100%; border-radius: 6px; margin-top: 8px; min-height: 40px; background: #eee; }
+  .aviso { border-radius: 8px; padding: 10px; margin-top: 8px; font-size: 14px; display: none; }
+  .aviso.rojo { background: #fce8e6; color: #a50e0e; }
+  .aviso.amarillo { background: #fef7e0; color: #7a4f01; }
+  .cargando { font-size: 13px; color: #5f6368; margin-top: 4px; display: none; }
+  .exito { text-align: center; display: none; }
+  .exito .codigo { font-size: 34px; font-weight: 700; color: #188038; margin: 10px 0; }
+</style>
+</head>
+<body>
+<header>📋 Alta de cliente</header>
+
+<form id="f" autocomplete="off" onsubmit="return false">
+  <div class="card" id="cardCarga">Cargando…</div>
+
+  <div id="formulario" style="display:none">
+    <div class="card">
+      <label>Vendedor <span class="req">*</span></label>
+      <select id="vendedor"></select>
+      <div class="error-campo" id="e_vendedor">Selecciona quién levanta el cliente.</div>
+
+      <label>Ruta <span class="req">*</span></label>
+      <select id="ruta"></select>
+      <div class="error-campo" id="e_ruta">Selecciona la ruta.</div>
+
+      <label>Frecuencia (días de visita) <span class="req">*</span></label>
+      <div class="frecuencias" id="frecuencias"><div class="ayuda">Primero elige la ruta.</div></div>
+      <div class="error-campo" id="e_frecuencia">Selecciona la frecuencia.</div>
+    </div>
+
+    <div class="card">
+      <label>Nombre del negocio <span class="req">*</span></label>
+      <input id="nombre" maxlength="80" placeholder="Ej. Abarrotes La Esperanza">
+      <div class="error-campo" id="e_nombre">Escribe el nombre del negocio.</div>
+
+      <label>Nombre del encargado / dueño <span class="req">*</span></label>
+      <input id="encargado" maxlength="60" placeholder="Ej. Juan Pérez">
+      <div class="error-campo" id="e_encargado">Escribe el nombre del encargado.</div>
+
+      <label>Teléfono (10 dígitos) <span class="req">*</span></label>
+      <input id="telefono" type="tel" inputmode="numeric" maxlength="14" placeholder="81 1234 5678">
+      <div class="error-campo" id="e_telefono">El teléfono debe tener exactamente 10 dígitos.</div>
+    </div>
+
+    <div class="card">
+      <label>Dirección <span class="req">*</span></label>
+      <input id="buscar" placeholder="Escribe calle y número. Ej. Aguascalientes 300 García">
+      <div class="ayuda">Escribe y <b>elige una opción de la lista</b> (viene de Google Maps). Debe incluir número.</div>
+      <div class="cargando" id="buscando">Buscando en Google Maps…</div>
+      <div class="sugerencias" id="sugerencias"></div>
+      <button type="button" class="btn btn-sec" id="btnGps">📍 Usar mi ubicación (estoy en la tienda)</button>
+      <div class="error-campo" id="e_direccion">Elige una dirección de la lista de Google Maps.</div>
+
+      <div class="elegida" id="elegida">
+        <table>
+          <tr><td>Calle</td><td id="d_calle"></td></tr>
+          <tr><td>Número</td><td id="d_numero"></td></tr>
+          <tr><td>Colonia</td><td id="d_colonia"></td></tr>
+          <tr><td>C.P.</td><td id="d_cp"></td></tr>
+          <tr><td>Municipio</td><td id="d_ciudad"></td></tr>
+        </table>
+        <div id="colManual" style="display:none">
+          <label>Colonia <span class="req">*</span></label>
+          <input id="coloniaManual" placeholder="Google no trajo la colonia, escríbela">
+        </div>
+        <iframe id="mapa" title="Mapa" loading="lazy" style="width:100%;height:220px;border:0;border-radius:6px;margin-top:8px;background:#eee"></iframe>
+        <button type="button" class="btn btn-sec" id="btnCambiar">Cambiar dirección</button>
+      </div>
+      <div class="aviso rojo" id="avisoRojo"></div>
+      <div class="aviso amarillo" id="avisoAmarillo">
+        <div id="avisoAmarilloTxt"></div>
+        <label style="font-weight:normal;display:flex;gap:8px;align-items:center;margin-top:8px">
+          <input type="checkbox" id="confirmaDistinto" style="width:auto"> Confirmo que es un negocio distinto
+        </label>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-pri" id="btnGuardar">Guardar cliente</button>
+    <div class="aviso rojo" id="errorGeneral"></div>
+    <div style="height:30px"></div>
+  </div>
+
+  <div class="card exito" id="exito">
+    <div>✅ Cliente registrado</div>
+    <div class="codigo" id="exitoCodigo"></div>
+    <div id="exitoDetalle"></div>
+    <br>
+    <button type="button" class="btn btn-pri" id="btnOtro">Registrar otro cliente</button>
+  </div>
+</form>
+
+<script>
+// ====== PEGA AQUÍ LA URL DE TU IMPLEMENTACIÓN DE APPS SCRIPT (termina en /exec) ======
+var API_URL = 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT';
+
+function esperar(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+/** Llama a Apps Script. Reintenta solo si falla la red (mala señal), no si el servidor rechaza. */
+function api(accion, datos, intento) {
+  intento = intento || 1;
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: accion, datos: datos || {} }), redirect: 'follow' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (j) { if (!j.ok) { var e = new Error(j.error); e.servidor = true; throw e; } return j.data; })
+    .catch(function (err) {
+      if (!err.servidor && intento < 3) return esperar(1500 * intento).then(function () { return api(accion, datos, intento + 1); });
+      throw err;
+    });
+}
+function nuevoId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+var idEnvio = nuevoId();
+
+var CFG = null, frecuencia = '', direccion = null, seqBusqueda = 0, timer = null, bloqueado = false;
+var $ = function (id) { return document.getElementById(id); };
+
+function guardarLocal(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function leerLocal(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function fallo(err) { mostrarError((err && err.servidor ? 'Error: ' : 'Sin conexión o señal débil: ') + (err && err.message ? err.message : err) + '. Tus datos siguen aquí, intenta de nuevo.'); }
+
+// Carga la configuración (y usa la última guardada si no hay señal)
+(function () {
+  var guardada = leerLocal('cfg');
+  if (guardada) { try { iniciar(JSON.parse(guardada)); } catch (e) {} }
+  api('config').then(function (cfg) { guardarLocal('cfg', JSON.stringify(cfg)); if (!CFG) iniciar(cfg); else CFG = cfg; })
+    .catch(function (e) { if (!CFG) $('cardCarga').textContent = 'No se pudo cargar (' + e.message + '). Revisa tu señal y recarga la página.'; });
+})();
+
+function iniciar(cfg) {
+  CFG = cfg;
+  var v = $('vendedor');
+  v.innerHTML = '<option value="">— Selecciona —</option>' + cfg.vendedores.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
+  var r = $('ruta');
+  r.innerHTML = '<option value="">— Selecciona —</option>' + Object.keys(cfg.rutas).map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
+  var vg = leerLocal('vendedor'); if (cfg.vendedores.indexOf(vg) >= 0) v.value = vg;
+  var rg = leerLocal('ruta'); if (cfg.rutas[rg]) { r.value = rg; pintarFrecuencias(); }
+  $('cardCarga').style.display = 'none';
+  $('formulario').style.display = 'block';
+}
+
+$('vendedor').onchange = function () { guardarLocal('vendedor', this.value); ocultar('e_vendedor'); };
+$('ruta').onchange = function () { guardarLocal('ruta', this.value); frecuencia = ''; pintarFrecuencias(); ocultar('e_ruta'); };
+
+function pintarFrecuencias() {
+  var lista = CFG.rutas[$('ruta').value] || [];
+  $('frecuencias').innerHTML = lista.length ? lista.map(function (f) {
+    return '<div class="frec' + (f.frecuencia === frecuencia ? ' sel' : '') + '" data-f="' + esc(f.frecuencia) + '"><b>' + esc(f.frecuencia) + '</b><span>' + esc(f.dias) + '</span></div>';
+  }).join('') : '<div class="ayuda">Primero elige la ruta.</div>';
+  Array.prototype.forEach.call(document.querySelectorAll('.frec'), function (el) {
+    el.onclick = function () { frecuencia = el.getAttribute('data-f'); pintarFrecuencias(); ocultar('e_frecuencia'); };
+  });
+}
+
+$('telefono').oninput = function () {
+  var d = this.value.replace(/\D/g, '').slice(0, 10);
+  this.value = d.replace(/^(\d{2})(\d{0,4})(\d{0,4}).*/, function (_, a, b, c) { return [a, b, c].filter(Boolean).join(' '); });
+  ocultar('e_telefono'); this.classList.remove('invalido');
+};
+$('telefono').onblur = function () { if (direccion) revisar(); };
+$('nombre').oninput = function () { ocultar('e_nombre'); this.classList.remove('invalido'); };
+$('encargado').oninput = function () { ocultar('e_encargado'); this.classList.remove('invalido'); };
+
+// ---------- Búsqueda tipo autocompletado ----------
+$('buscar').oninput = function () {
+  limpiarDireccion();
+  clearTimeout(timer);
+  var t = this.value.trim();
+  if (t.length < 6) { $('sugerencias').style.display = 'none'; return; }
+  timer = setTimeout(function () { buscar(t); }, 800);
+};
+
+function buscar(t) {
+  var mio = ++seqBusqueda;
+  $('buscando').style.display = 'block';
+  api('buscar', { texto: t }).then(function (res) {
+    if (mio !== seqBusqueda) return; // respuesta vieja
+    $('buscando').style.display = 'none';
+    pintarSugerencias(res, 'No se encontró. Revisa la calle o agrega la colonia / municipio.');
+  }).catch(function (e) { if (mio === seqBusqueda) { $('buscando').style.display = 'none'; fallo(e); } });
+}
+
+function pintarSugerencias(res, msgVacio) {
+  var box = $('sugerencias');
+  if (!res.length) { box.innerHTML = '<div class="sug sin-num">' + esc(msgVacio) + '</div>'; box.style.display = 'block'; return; }
+  box.innerHTML = res.map(function (r, i) {
+    var ok = r.numero && r.cp;
+    return '<div class="sug' + (ok ? '' : ' sin-num') + '" data-i="' + i + '">' + esc(r.etiqueta) +
+      (ok ? '' : '<small>' + (r.numero ? 'Sin código postal, elige otra opción' : 'Falta el número exterior: agrégalo a lo que escribiste') + '</small>') + '</div>';
+  }).join('');
+  box.style.display = 'block';
+  Array.prototype.forEach.call(box.querySelectorAll('.sug[data-i]'), function (el) {
+    el.onclick = function () {
+      var r = res[+el.getAttribute('data-i')];
+      if (!r.numero || !r.cp) return;
+      elegir(r);
+    };
+  });
+}
+
+function elegir(r) {
+  direccion = r;
+  $('sugerencias').style.display = 'none';
+  $('buscar').value = r.etiqueta;
+  $('d_calle').textContent = r.calle; $('d_numero').textContent = r.numero;
+  $('d_colonia').textContent = r.colonia || '—'; $('d_cp').textContent = r.cp; $('d_ciudad').textContent = r.ciudad;
+  $('colManual').style.display = r.colonia ? 'none' : 'block';
+  $('coloniaManual').value = '';
+  $('mapa').src = 'https://maps.google.com/maps?q=' + r.lat + ',' + r.lng + '&z=17&output=embed';
+  $('elegida').style.display = 'block';
+  $('buscar').style.display = 'none';
+  ocultar('e_direccion');
+  revisar();
+}
+
+function limpiarDireccion() {
+  direccion = null; bloqueado = false;
+  $('elegida').style.display = 'none';
+  ocultar('avisoRojo'); ocultar('avisoAmarillo'); $('confirmaDistinto').checked = false;
+}
+
+$('btnCambiar').onclick = function () {
+  limpiarDireccion();
+  $('buscar').style.display = 'block'; $('buscar').value = ''; $('buscar').focus();
+};
+
+// ---------- GPS ----------
+$('btnGps').onclick = function () {
+  if (!navigator.geolocation) { mostrarError('Este teléfono no permite obtener la ubicación. Escribe la dirección.'); return; }
+  $('buscando').style.display = 'block'; $('buscando').textContent = 'Obteniendo tu ubicación…';
+  navigator.geolocation.getCurrentPosition(function (p) {
+    api('gps', { lat: p.coords.latitude, lng: p.coords.longitude }).then(function (res) {
+      $('buscando').style.display = 'none'; $('buscando').textContent = 'Buscando en Google Maps…';
+      limpiarDireccion(); $('buscar').style.display = 'block';
+      pintarSugerencias(res, 'No se encontró dirección en esta ubicación. Escríbela.');
+    }).catch(function (e) { $('buscando').style.display = 'none'; $('buscando').textContent = 'Buscando en Google Maps…'; fallo(e); });
+  }, function () {
+    $('buscando').style.display = 'none'; $('buscando').textContent = 'Buscando en Google Maps…';
+    $('btnGps').style.display = 'none';
+    mostrarError('No se pudo usar el GPS aquí. Escribe la dirección y elígela de la lista.');
+  }, { enableHighAccuracy: true, timeout: 15000 });
+};
+
+// ---------- Duplicados ----------
+function revisar() {
+  if (!direccion) return;
+  var d = direccion;
+  api('revisar', { direccion: d, telefono: $('telefono').value }).then(function (r) {
+    if (d !== direccion) return;
+    pintarAvisos(r.bloqueos, r.avisos);
+  }).catch(function () { /* se vuelve a revisar al guardar */ });
+}
+
+function pintarAvisos(bloqueos, avisos) {
+  bloqueado = bloqueos && bloqueos.length > 0;
+  if (bloqueado) { $('avisoRojo').innerHTML = '⛔ <b>No se puede dar de alta:</b><br>' + bloqueos.map(esc).join('<br>'); mostrar('avisoRojo'); }
+  else ocultar('avisoRojo');
+  if (avisos && avisos.length) { $('avisoAmarilloTxt').innerHTML = '⚠️ <b>Posible cliente repetido:</b><br>' + avisos.map(esc).join('<br>'); mostrar('avisoAmarillo'); }
+  else ocultar('avisoAmarillo');
+}
+
+// ---------- Guardar ----------
+$('btnGuardar').onclick = function () {
+  ocultar('errorGeneral');
+  var ok = true;
+  var tel = $('telefono').value.replace(/\D/g, '');
+  if (!$('vendedor').value) { mostrar('e_vendedor'); ok = false; }
+  if (!$('ruta').value) { mostrar('e_ruta'); ok = false; }
+  if (!frecuencia) { mostrar('e_frecuencia'); ok = false; }
+  if ($('nombre').value.trim().length < 2) { mostrar('e_nombre'); $('nombre').classList.add('invalido'); ok = false; }
+  if ($('encargado').value.trim().length < 2) { mostrar('e_encargado'); $('encargado').classList.add('invalido'); ok = false; }
+  if (tel.length !== 10) { mostrar('e_telefono'); $('telefono').classList.add('invalido'); ok = false; }
+  if (!direccion) { mostrar('e_direccion'); ok = false; }
+  else if (!direccion.colonia && $('coloniaManual').value.trim().length < 3) { mostrarError('Escribe la colonia.'); ok = false; }
+  if (bloqueado) { mostrarError('Este cliente ya existe. Revisa el aviso rojo.'); ok = false; }
+  if (!$('avisoAmarillo').style.display.match(/none|^$/) && !$('confirmaDistinto').checked) { mostrarError('Marca la casilla para confirmar que es un negocio distinto.'); ok = false; }
+  if (!ok) { var p = document.querySelector('.error-campo[style*="block"]'); if (p) p.scrollIntoView({ block: 'center' }); return; }
+
+  var dir = JSON.parse(JSON.stringify(direccion));
+  if (!dir.colonia) dir.colonia = $('coloniaManual').value.trim();
+  var datos = { vendedor: $('vendedor').value, ruta: $('ruta').value, frecuencia: frecuencia,
+    nombre: $('nombre').value, encargado: $('encargado').value, telefono: tel, direccion: dir,
+    confirmaDistinto: $('confirmaDistinto').checked, idEnvio: idEnvio };
+
+  var b = $('btnGuardar'); b.disabled = true; b.textContent = 'Guardando…';
+  api('guardar', datos).then(function (r) {
+    b.disabled = false; b.textContent = 'Guardar cliente';
+    if (r.ok) {
+      $('formulario').style.display = 'none'; $('exito').style.display = 'block';
+      $('exitoCodigo').textContent = r.codigo;
+      $('exitoDetalle').textContent = datos.nombre + ' · ' + r.zona;
+      idEnvio = nuevoId();
+      window.scrollTo(0, 0);
+    } else if (r.requiereConfirmacion) {
+      pintarAvisos([], r.avisos);
+      mostrarError('Hay un cliente muy cerca. Confirma que es un negocio distinto.');
+    } else {
+      if (r.duplicado) pintarAvisos(r.errores, []);
+      mostrarError(r.errores.map(esc).join('<br>'), true);
+    }
+  }).catch(function (e) { b.disabled = false; b.textContent = 'Guardar cliente'; fallo(e); });
+};
+
+$('btnOtro').onclick = function () {
+  ['nombre', 'encargado', 'telefono', 'buscar'].forEach(function (id) { $(id).value = ''; });
+  frecuencia = ''; pintarFrecuencias();
+  limpiarDireccion(); $('buscar').style.display = 'block'; $('sugerencias').style.display = 'none';
+  $('exito').style.display = 'none'; $('formulario').style.display = 'block'; ocultar('errorGeneral');
+  window.scrollTo(0, 0);
+};
+
+function mostrar(id) { $(id).style.display = 'block'; }
+function ocultar(id) { $(id).style.display = 'none'; }
+function mostrarError(msg, html) { var e = $('errorGeneral'); if (html) e.innerHTML = msg; else e.textContent = msg; mostrar('errorGeneral'); e.scrollIntoView({ block: 'center' }); }
+</script>
+</body>
+</html>
