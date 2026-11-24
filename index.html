@@ -164,6 +164,57 @@
   .hoja-btns .btn-pri { padding: 14px; font-size: 16px; }
   @keyframes sube { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #fff; padding: 6px; border-radius: 14px;
+    box-shadow: var(--sombra); margin-bottom: 14px; border: 1px solid rgba(226,232,240,.7); }
+  .tab { font: inherit; font-size: 14.5px; font-weight: 600; border: 0; background: transparent; color: var(--gris); padding: 11px 8px;
+    border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all .15s; }
+  .tab svg { width: 17px; height: 17px; }
+  .tab.activa { background: var(--azul-claro); color: var(--azul-osc); box-shadow: inset 0 0 0 1.5px #c7d4fb; }
+  #sinRuta { margin-top: 14px; }
+  #contenido.bloqueado { opacity: .35; pointer-events: none; filter: grayscale(1); }
+
+  .filtros { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .chip { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 999px; border: 1.5px solid var(--borde);
+    background: #fff; color: var(--gris); cursor: pointer; }
+  .chip.activa { border-color: var(--azul); background: var(--azul-claro); color: var(--azul-osc); }
+  #resultados { margin-top: 12px; }
+  .res { display: flex; gap: 12px; align-items: center; padding: 13px 4px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+  .res:last-child { border-bottom: 0; }
+  .res:active { background: #f8fafc; }
+  .res .av { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 15px; flex: none;
+    background: var(--azul-claro); color: var(--azul-osc); }
+  .res.inac .av { background: #f1f5f9; color: #94a3b8; }
+  .res .t { flex: 1; min-width: 0; }
+  .res .n { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .res.inac .n { color: #64748b; }
+  .res .s { font-size: 12.5px; color: var(--gris); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; flex: none; }
+  .badge.act { background: var(--verde-claro); color: var(--verde); }
+  .badge.ina { background: var(--rojo-claro); color: var(--rojo); }
+  .vacio { text-align: center; color: var(--gris); font-size: 14px; padding: 18px 8px; }
+
+  .det-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 4px; }
+  .det-h h3 { margin: 0; font-size: 19px; }
+  .det-h .cod { font-size: 13px; color: var(--gris); margin-top: 3px; }
+  .estado-box { border-radius: 12px; padding: 12px 14px; margin: 12px 0; font-size: 13.5px; line-height: 1.5; }
+  .estado-box.ina { background: var(--rojo-claro); color: #991b1b; border: 1px solid #f8caca; }
+  textarea { width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--borde); border-radius: 12px;
+    background: #f8fafc; resize: vertical; min-height: 70px; }
+  textarea:focus { outline: none; border-color: var(--azul); background: #fff; box-shadow: 0 0 0 4px rgba(47,91,234,.12); }
+  .sin-ic { padding-left: 14px !important; }
+  .btn-rojo { background: linear-gradient(180deg, #ef4444, #c81e1e); color: #fff; box-shadow: 0 8px 20px rgba(220,38,38,.28); }
+  .btn-verde { background: linear-gradient(180deg, #16a34a, #0f7a37); color: #fff; box-shadow: 0 8px 20px rgba(15,157,88,.28); }
+  #cliError { margin-top: 12px; }
+  .opc { color: #94a3b8; font-weight: 500; }
+  .chips-nota { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+  .chips-nota .chip { font-size: 12.5px; padding: 6px 11px; }
+  .chips-nota .chip:active { background: var(--azul-claro); color: var(--azul-osc); border-color: var(--azul); }
+  .notas-lista { border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; }
+  .nota-item { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; font-size: 14px; line-height: 1.45; background: #fffdf5; }
+  .nota-item:last-child { border-bottom: 0; }
+  .nota-item small { display: block; color: var(--gris); font-size: 12px; margin-top: 3px; }
+  .notas-vacio { color: var(--gris); font-size: 13.5px; padding: 12px 14px; }
+  .sep { height: 1px; background: var(--borde); margin: 18px 0 4px; }
   footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
@@ -174,8 +225,8 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-4h4v4"/></svg>
     </div>
     <div>
-      <h1>Alta de clientes</h1>
-      <p>Registra un nuevo punto de venta en tu ruta</p>
+      <h1>Clientes</h1>
+      <p>Alta y control de clientes de tu ruta</p>
     </div>
   </div>
 </header>
@@ -185,16 +236,30 @@
   <div class="card carga" id="cardCarga"><div class="spinner"></div>Cargando formulario…</div>
 
   <div id="formulario" style="display:none">
-    <!-- PASO 1 -->
-    <section class="card">
-      <div class="card-h"><div class="paso">1</div><div><h2>Ruta y vendedor</h2><span>¿Quién lo registra y en qué ruta va?</span></div></div>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab activa" id="tabNuevo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nuevo cliente</button>
+      <button type="button" class="tab" id="tabBuscar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar cliente</button>
+    </div>
 
+    <!-- VENDEDOR -->
+    <section class="card">
+      <div class="card-h"><div class="paso"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><div><h2>Vendedor</h2><span>Selecciona tu nombre</span></div></div>
       <label for="vendedor">Vendedor <span class="req">*</span></label>
       <div class="campo">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
         <select id="vendedor"></select>
       </div>
-      <div class="error-campo" id="e_vendedor">Selecciona quién levanta el cliente.</div>
+      <div class="error-campo" id="e_vendedor">Selecciona tu nombre.</div>
+      <div class="aviso rojo" id="sinRuta"><b>Este vendedor no tiene rutas asignadas.</b><br>Pide al administrador que te asigne tu ruta para poder registrar o buscar clientes.</div>
+    </section>
+
+    <div id="contenido">
+    <div id="modoNuevo">
+    <!-- PASO 1 -->
+    <section class="card">
+      <div class="card-h"><div class="paso">1</div><div><h2>Ruta y frecuencia</h2><span>¿Qué días se visita este cliente?</span></div></div>
 
       <label for="ruta">Ruta <span class="req">*</span></label>
       <div class="campo">
@@ -233,6 +298,17 @@
         <input id="telefono" type="tel" inputmode="numeric" maxlength="14" placeholder="81 1234 5678">
       </div>
       <div class="error-campo" id="e_telefono">El teléfono debe tener exactamente 10 dígitos.</div>
+
+      <label for="notas">Notas internas <span class="opc">(opcional)</span></label>
+      <div class="chips-nota" id="chipsNota">
+        <button type="button" class="chip">Paga de contado</button>
+        <button type="button" class="chip">Maneja crédito</button>
+        <button type="button" class="chip">Cliente delicado</button>
+        <button type="button" class="chip">Pide factura</button>
+        <button type="button" class="chip">Paga puntual</button>
+      </div>
+      <textarea id="notas" maxlength="500" placeholder="Cómo se le vende, horario, referencias del negocio, trato con el dueño…"></textarea>
+      <div class="ayuda">🔒 Solo para uso interno. No se envía a Handy.</div>
     </section>
 
     <!-- PASO 3 -->
@@ -286,6 +362,27 @@
         </button>
       </div>
     </div>
+    </div><!-- /modoNuevo -->
+
+    <div id="modoBuscar" style="display:none">
+      <section class="card">
+        <div class="card-h"><div class="paso"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+          <div><h2>Buscar cliente</h2><span>Por nombre, teléfono, código, calle o colonia</span></div></div>
+        <label for="q">Buscar <span class="req"></span></label>
+        <div class="campo">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="q" placeholder="Ej. Lupita, 8123456789, R4-0012…" enterkeyhint="search">
+        </div>
+        <div class="filtros" id="filtroEst">
+          <button type="button" class="chip activa" data-e="">Todos</button>
+          <button type="button" class="chip" data-e="Activo">Activos</button>
+          <button type="button" class="chip" data-e="Inactivo">Inactivos</button>
+        </div>
+        <div class="cargando" id="buscandoCli">Buscando…</div>
+        <div id="resultados"></div>
+      </section>
+    </div><!-- /modoBuscar -->
+    </div><!-- /contenido -->
   </div>
 
   <div class="modal" id="modal">
@@ -299,6 +396,16 @@
         <button type="button" class="btn btn-sec" id="btnCorregir">Corregir</button>
         <button type="button" class="btn btn-pri" id="btnConfirmar">Sí, guardar</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalCli">
+    <div class="hoja" role="dialog" aria-modal="true">
+      <div class="asa"></div>
+      <div id="cliDet"></div>
+      <div id="cliAccion"></div>
+      <div class="aviso rojo" id="cliError"></div>
+      <div class="hoja-btns" id="cliBtns"></div>
     </div>
   </div>
 
@@ -364,19 +471,27 @@ function aplicarVendedor() {
   var v = $('vendedor').value, r = $('ruta'), previa = r.value || leerLocal('ruta');
   var nota = $('rutaNota');
   if (!v) {
+    ocultar('sinRuta'); $('contenido').classList.add('bloqueado');
     r.innerHTML = '<option value="">Primero elige el vendedor</option>'; r.disabled = true;
     nota.style.display = 'none'; frecuencia = ''; pintarFrecuencias(); return;
   }
   var asignadas = ((CFG.asignacion || {})[v] || []).filter(function (x) { return CFG.rutas[x]; });
-  var opciones = asignadas.length ? asignadas : Object.keys(CFG.rutas);
+  if (!asignadas.length) {
+    mostrar('sinRuta'); $('contenido').classList.add('bloqueado');
+    r.innerHTML = '<option value="">Sin ruta asignada</option>'; r.disabled = true;
+    nota.style.display = 'none'; frecuencia = ''; pintarFrecuencias(); return;
+  }
+  ocultar('sinRuta'); $('contenido').classList.remove('bloqueado');
+  var opciones = asignadas;
   if (opciones.length === 1) {
     r.innerHTML = '<option>' + esc(opciones[0]) + '</option>'; r.value = opciones[0]; r.disabled = true;
   } else {
     r.innerHTML = '<option value="">— Selecciona —</option>' + opciones.map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('');
     r.disabled = false; r.value = opciones.indexOf(previa) >= 0 ? previa : '';
   }
-  nota.style.display = asignadas.length ? 'block' : 'none';
-  nota.textContent = asignadas.length === 1 ? 'Ruta asignada a ' + v + '.' : (asignadas.length ? 'Rutas asignadas a ' + v + '.' : '');
+  nota.style.display = 'block';
+  nota.textContent = asignadas.length === 1 ? 'Ruta asignada a ' + v + '.' : 'Rutas asignadas a ' + v + '.';
+  if ($('modoBuscar').style.display === 'block' && $('q').value.trim().length >= 3) buscarCli();
   if (r.value !== previa) frecuencia = '';
   guardarLocal('ruta', r.value);
   if (r.value) ocultar('e_ruta');
@@ -524,7 +639,7 @@ $('btnGuardar').onclick = function () {
   if (!dir.colonia) dir.colonia = $('coloniaManual').value.trim();
   pendiente = { vendedor: $('vendedor').value, ruta: $('ruta').value, frecuencia: frecuencia,
     nombre: $('nombre').value.trim(), encargado: $('encargado').value.trim(), telefono: tel, direccion: dir,
-    confirmaDistinto: $('confirmaDistinto').checked, idEnvio: idEnvio };
+    confirmaDistinto: $('confirmaDistinto').checked, idEnvio: idEnvio, notas: $('notas').value.trim() };
   abrirResumen(pendiente);
 };
 
@@ -537,6 +652,7 @@ function abrirResumen(d) {
   var filas = [['Negocio', d.nombre], ['Encargado', d.encargado], ['Teléfono', tel],
     ['Dirección', d.direccion.calle + ' ' + d.direccion.numero], ['Colonia', d.direccion.colonia],
     ['C.P. / Mpio.', d.direccion.cp + ' · ' + d.direccion.ciudad], ['Vendedor', d.vendedor]];
+  if (d.notas) filas.push(['Notas', d.notas]);
   $('resumen').innerHTML = filas.map(function (x) { return '<div class="fila"><div class="k">' + esc(x[0]) + '</div><div class="v">' + esc(x[1]) + '</div></div>'; }).join('');
   $('modal').classList.add('abierto');
 }
@@ -566,12 +682,138 @@ function enviar(datos) {
 }
 
 $('btnOtro').onclick = function () {
-  ['nombre', 'encargado', 'telefono', 'buscar'].forEach(function (id) { $(id).value = ''; });
+  ['nombre', 'encargado', 'telefono', 'buscar', 'notas'].forEach(function (id) { $(id).value = ''; });
   frecuencia = ''; pintarFrecuencias();
   limpiarDireccion(); $('buscar').parentNode.style.display = 'block'; $('sugerencias').style.display = 'none';
   $('exito').style.display = 'none'; $('formulario').style.display = 'block'; ocultar('errorGeneral');
   window.scrollTo(0, 0);
 };
+
+
+// ---------- Notas rápidas ----------
+Array.prototype.forEach.call(document.querySelectorAll('#chipsNota .chip'), function (c) {
+  c.onclick = function () {
+    var t = $('notas'), v = t.value.trim();
+    if (v.indexOf(c.textContent) >= 0) return;
+    t.value = v ? v + '. ' + c.textContent : c.textContent;
+  };
+});
+
+// ================= BUSCAR CLIENTE / ACTIVAR - INACTIVAR =================
+var filtroEst = '', seqCli = 0, timerCli = null, cliSel = null, ultimosRes = [];
+function cambiarModo(m) {
+  $('tabNuevo').classList.toggle('activa', m === 'nuevo');
+  $('tabBuscar').classList.toggle('activa', m === 'buscar');
+  $('modoNuevo').style.display = m === 'nuevo' ? 'block' : 'none';
+  $('modoBuscar').style.display = m === 'buscar' ? 'block' : 'none';
+  if (m === 'buscar') setTimeout(function () { $('q').focus(); }, 50);
+}
+$('tabNuevo').onclick = function () { cambiarModo('nuevo'); };
+$('tabBuscar').onclick = function () { cambiarModo('buscar'); };
+
+Array.prototype.forEach.call(document.querySelectorAll('#filtroEst .chip'), function (c) {
+  c.onclick = function () {
+    Array.prototype.forEach.call(document.querySelectorAll('#filtroEst .chip'), function (x) { x.classList.remove('activa'); });
+    c.classList.add('activa'); filtroEst = c.getAttribute('data-e'); pintarResultados();
+  };
+});
+
+$('q').oninput = function () {
+  clearTimeout(timerCli);
+  if (this.value.trim().length < 3) { ultimosRes = []; $('resultados').innerHTML = '<div class="vacio">Escribe al menos 3 letras o números.</div>'; return; }
+  timerCli = setTimeout(buscarCli, 500);
+};
+
+function buscarCli() {
+  var mio = ++seqCli;
+  $('buscandoCli').style.display = 'block';
+  api('buscarClientes', { vendedor: $('vendedor').value, texto: $('q').value }).then(function (res) {
+    if (mio !== seqCli) return;
+    $('buscandoCli').style.display = 'none';
+    ultimosRes = res; pintarResultados();
+  }).catch(function (e) { if (mio === seqCli) { $('buscandoCli').style.display = 'none'; $('resultados').innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; } });
+}
+
+function pintarResultados() {
+  if ($('q').value.trim().length < 3) return;
+  var lista = ultimosRes.filter(function (c) { return !filtroEst || c.estatus === filtroEst; });
+  if (!lista.length) { $('resultados').innerHTML = '<div class="vacio">No se encontraron clientes en tu ruta.</div>'; return; }
+  $('resultados').innerHTML = lista.map(function (c, i) {
+    var ina = c.estatus === 'Inactivo';
+    return '<div class="res' + (ina ? ' inac' : '') + '" data-c="' + esc(c.codigo) + '"><div class="av">' + esc((c.nombre || '?').trim().charAt(0).toUpperCase()) + '</div>' +
+      '<div class="t"><div class="n">' + esc(c.nombre) + '</div><div class="s">' + esc(c.direccion) + (c.colonia ? ', ' + esc(c.colonia) : '') + ' · ' + esc(c.zona) + '</div></div>' +
+      '<span class="badge ' + (ina ? 'ina' : 'act') + '">' + (ina ? 'Inactivo' : 'Activo') + '</span></div>';
+  }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('.res'), function (el) {
+    el.onclick = function () {
+      var cod = el.getAttribute('data-c');
+      abrirCliente(ultimosRes.filter(function (x) { return x.codigo === cod; })[0]);
+    };
+  });
+}
+
+var MOTIVOS = ['Ya no compra', 'Cerró el negocio', 'Se cambió de domicilio', 'Cliente duplicado', 'Otro'];
+function abrirCliente(c) {
+  cliSel = c; ocultar('cliError');
+  var ina = c.estatus === 'Inactivo';
+  var filas = [['Código', c.codigo], ['Zona', c.zona], ['Dirección', c.direccion], ['Colonia', c.colonia], ['Teléfono', c.telefono], ['Encargado', c.encargado]]
+    .filter(function (x) { return x[1]; });
+  $('cliDet').innerHTML = '<div class="det-h"><div><h3>' + esc(c.nombre) + '</h3><div class="cod">' + esc(c.codigo) + '</div></div>' +
+    '<span class="badge ' + (ina ? 'ina' : 'act') + '">' + (ina ? 'Inactivo' : 'Activo') + '</span></div>' +
+    (ina ? '<div class="estado-box ina"><b>Inactivo' + (c.motivo ? ': ' + esc(c.motivo) : '') + '</b>' +
+      (c.nota ? '<br>' + esc(c.nota) : '') + (c.fechaEstatus ? '<br><span style="opacity:.8">' + esc(c.fechaEstatus) + (c.por ? ' · ' + esc(c.por) : '') + '</span>' : '') + '</div>' : '<div style="height:10px"></div>') +
+    '<div class="resumen">' + filas.map(function (x) { return '<div class="fila"><div class="k">' + esc(x[0]) + '</div><div class="v">' + esc(x[1]) + '</div></div>'; }).join('') + '</div>' +
+    '<label>Notas internas</label><div class="notas-lista" id="notasLista">' + htmlNotas(c.notas) + '</div>' +
+    '<textarea id="nuevaNota" maxlength="500" placeholder="Agregar una nota sobre este cliente…" style="margin-top:10px"></textarea>' +
+    '<button type="button" class="btn btn-sec" id="btnNota">Agregar nota</button><div class="sep"></div>';
+  if (ina) {
+    $('cliAccion').innerHTML = '<label for="notaEst">Nota (opcional)</label><textarea id="notaEst" maxlength="300" placeholder="Ej. Volvió a comprar el 3 de diciembre"></textarea>';
+    $('cliBtns').innerHTML = '<button type="button" class="btn btn-sec" id="btnCerrarCli">Cerrar</button><button type="button" class="btn btn-verde" id="btnEst">Reactivar cliente</button>';
+  } else {
+    $('cliAccion').innerHTML = '<label for="motivoEst">Motivo para inactivar <span class="req">*</span></label>' +
+      '<select id="motivoEst" class="sin-ic"><option value="">— Selecciona —</option>' + MOTIVOS.map(function (m) { return '<option>' + m + '</option>'; }).join('') + '</select>' +
+      '<label for="notaEst">Nota</label><textarea id="notaEst" maxlength="300" placeholder="Ej. El dueño dice que ya le surte otra empresa"></textarea>';
+    $('cliBtns').innerHTML = '<button type="button" class="btn btn-sec" id="btnCerrarCli">Cerrar</button><button type="button" class="btn btn-rojo" id="btnEst">Marcar inactivo</button>';
+  }
+  $('btnCerrarCli').onclick = cerrarCliente;
+  $('btnNota').onclick = agregarNota;
+  $('btnEst').onclick = function () { guardarEstatus(ina ? 'Activo' : 'Inactivo'); };
+  $('modalCli').classList.add('abierto');
+}
+function htmlNotas(n) {
+  if (!n || !n.length) return '<div class="notas-vacio">Sin notas todavía.</div>';
+  return n.slice().reverse().map(function (x) {
+    return '<div class="nota-item">' + esc(x.nota) + '<small>' + esc(x.fecha || '') + (x.por ? ' · ' + esc(x.por) : '') + '</small></div>';
+  }).join('');
+}
+function agregarNota() {
+  var t = $('nuevaNota').value.trim();
+  if (t.length < 3) { $('cliError').textContent = 'Escribe la nota.'; mostrar('cliError'); return; }
+  var b = $('btnNota'); b.disabled = true; b.textContent = 'Guardando…'; ocultar('cliError');
+  api('nota', { vendedor: $('vendedor').value, codigo: cliSel.codigo, nota: t }).then(function (r) {
+    b.disabled = false; b.textContent = 'Agregar nota';
+    if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); return; }
+    cliSel.notas = (cliSel.notas || []).concat([{ fecha: r.fecha, nota: t, por: $('vendedor').value }]);
+    $('notasLista').innerHTML = htmlNotas(cliSel.notas); $('nuevaNota').value = '';
+  }).catch(function (e) { b.disabled = false; b.textContent = 'Agregar nota'; $('cliError').textContent = 'Sin conexión: ' + e.message; mostrar('cliError'); });
+}
+function cerrarCliente() { $('modalCli').classList.remove('abierto'); }
+$('modalCli').onclick = function (e) { if (e.target === this) cerrarCliente(); };
+
+function guardarEstatus(nuevo) {
+  var motivo = $('motivoEst') ? $('motivoEst').value : 'Reactivado';
+  var nota = $('notaEst').value.trim();
+  if (nuevo === 'Inactivo' && !motivo) { $('cliError').textContent = 'Elige el motivo.'; mostrar('cliError'); return; }
+  if (nuevo === 'Inactivo' && motivo === 'Otro' && nota.length < 3) { $('cliError').textContent = 'Escribe en la nota cuál es el motivo.'; mostrar('cliError'); return; }
+  var b = $('btnEst'), original = b.innerHTML; b.disabled = true; b.textContent = 'Guardando…';
+  api('estatus', { vendedor: $('vendedor').value, codigo: cliSel.codigo, estatus: nuevo, motivo: motivo, nota: nota }).then(function (r) {
+    b.disabled = false; b.innerHTML = original;
+    if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); return; }
+    cliSel.estatus = nuevo; cliSel.motivo = nuevo === 'Inactivo' ? motivo : ''; cliSel.nota = nuevo === 'Inactivo' ? nota : '';
+    cliSel.fechaEstatus = r.fecha || ''; cliSel.por = $('vendedor').value;
+    cerrarCliente(); pintarResultados();
+  }).catch(function (e) { b.disabled = false; b.innerHTML = original; $('cliError').textContent = 'Sin conexión: ' + e.message; mostrar('cliError'); });
+}
 
 function mostrar(id) { $(id).style.display = 'block'; }
 function ocultar(id) { $(id).style.display = 'none'; }
