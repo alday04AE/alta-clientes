@@ -129,14 +129,15 @@
 
 <script>
 // ====== PEGA AQUÍ LA URL DE TU IMPLEMENTACIÓN DE APPS SCRIPT (termina en /exec) ======
-var API_URL = 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT';
+var API_URL = 'https://script.google.com/macros/s/AKfycbxDJbyTJU8fEX5FQ9sqk-5RRpGXGRBGqS-7_RVd6nvi0LyXf7-zPBxWj70612Etn6ldnA/exec';
 
 function esperar(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 /** Llama a Apps Script. Reintenta solo si falla la red (mala señal), no si el servidor rechaza. */
 function api(accion, datos, intento) {
   intento = intento || 1;
-  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: accion, datos: datos || {} }), redirect: 'follow' })
+  var url = API_URL + '?accion=' + encodeURIComponent(accion) +
+    '&datos=' + encodeURIComponent(JSON.stringify(datos || {})) + '&t=' + Date.now();
+  return fetch(url, { method: 'GET', redirect: 'follow', cache: 'no-store' })
     .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function (j) { if (!j.ok) { var e = new Error(j.error); e.servidor = true; throw e; } return j.data; })
     .catch(function (err) {
