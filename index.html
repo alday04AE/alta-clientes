@@ -215,6 +215,21 @@
   .nota-item small { display: block; color: var(--gris); font-size: 12px; margin-top: 3px; }
   .notas-vacio { color: var(--gris); font-size: 13.5px; padding: 12px 14px; }
   .sep { height: 1px; background: var(--borde); margin: 18px 0 4px; }
+  .btn-admin { flex: none; display: flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600; color: #fff;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; padding: 8px 13px 8px 10px;
+    cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); max-width: 150px; }
+  .btn-admin svg { width: 16px; height: 16px; flex: none; }
+  .btn-admin span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn-admin.on { background: #fff; color: var(--navy); border-color: #fff; }
+  .admin-banner { display: none; background: #1e293b; color: #e2e8f0; font-size: 12.5px; text-align: center; padding: 7px 12px;
+    border-radius: 10px; margin-bottom: 12px; }
+  .admin-banner.on { display: block; }
+  .pago-grid { display: grid; grid-template-columns: 1fr; gap: 0; }
+  .pago-grid label { margin-top: 10px; }
+  .badge.pend { background: var(--ambar-claro); color: var(--ambar); }
+  .handy-box { border-radius: 12px; padding: 10px 14px; margin: 10px 0 0; font-size: 13px; background: var(--ambar-claro); color: #7c3f06;
+    border: 1px solid #fadba6; }
+  h4.sec { margin: 18px 0 2px; font-size: 15px; }
   .link-admin { font: inherit; font-size: 13px; color: var(--gris); background: none; border: 0; padding: 0; margin-top: 14px;
     cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .admin-bar { display: none; margin-top: 14px; align-items: center; justify-content: space-between; gap: 10px;
@@ -234,10 +249,14 @@
     <div class="logo">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-4h4v4"/></svg>
     </div>
-    <div>
+    <div style="flex:1;min-width:0">
       <h1>Clientes</h1>
-      <p>Alta y control de clientes de tu ruta</p>
+      <p>Alta y control de clientes</p>
     </div>
+    <button type="button" class="btn-admin" id="btnAdmin" aria-label="Acceso administrador">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span id="btnAdminTxt">Admin</span>
+    </button>
   </div>
 </header>
 
@@ -246,6 +265,7 @@
   <div class="card carga" id="cardCarga"><div class="spinner"></div>Cargando formulario…</div>
 
   <div id="formulario" style="display:none">
+    <div class="admin-banner" id="adminBanner">🛡️ Modo administrador activo · <b id="adminNombre"></b></div>
     <div class="tabs" role="tablist">
       <button type="button" class="tab activa" id="tabNuevo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nuevo cliente</button>
@@ -262,8 +282,6 @@
         <select id="vendedor"></select>
       </div>
       <div class="error-campo" id="e_vendedor">Selecciona tu nombre.</div>
-      <div class="admin-bar" id="adminBar"><span>🔑 Modo administrador · <b id="adminNombre"></b></span><button type="button" id="btnSalirAdmin">Salir</button></div>
-      <button type="button" class="link-admin" id="btnAdmin">🔑 Acceso administrador</button>
       <div class="aviso rojo" id="sinRuta"><b>Este vendedor no tiene rutas asignadas.</b><br>Pide al administrador que te asigne tu ruta para poder registrar o buscar clientes.</div>
     </section>
 
@@ -733,8 +751,9 @@ Array.prototype.forEach.call(document.querySelectorAll('#chipsNota .chip'), func
 
 // ================= ADMINISTRADOR (PIN) =================
 function pintarAdmin() {
-  $('adminBar').classList.toggle('on', !!ADMIN_NOMBRE);
-  $('btnAdmin').style.display = ADMIN_NOMBRE ? 'none' : 'inline';
+  $('btnAdmin').classList.toggle('on', !!ADMIN_NOMBRE);
+  $('btnAdminTxt').textContent = ADMIN_NOMBRE ? ADMIN_NOMBRE + ' · Salir' : 'Admin';
+  $('adminBanner').classList.toggle('on', !!ADMIN_NOMBRE);
   $('adminNombre').textContent = ADMIN_NOMBRE;
   aplicarVendedor();
 }
@@ -743,9 +762,10 @@ function salirAdmin() {
   try { sessionStorage.removeItem('adm'); } catch (e) {}
   pintarAdmin(); ultimosRes = []; $('resultados').innerHTML = ''; $('q').value = '';
 }
-$('btnAdmin').onclick = function () { $('pin').value = ''; ocultar('pinError'); $('modalPin').classList.add('abierto'); setTimeout(function () { $('pin').focus(); }, 80); };
+$('btnAdmin').onclick = function () {
+  if (ADMIN_NOMBRE) { salirAdmin(); return; }
+  $('pin').value = ''; ocultar('pinError'); $('modalPin').classList.add('abierto'); setTimeout(function () { $('pin').focus(); }, 80); };
 $('btnPinCancelar').onclick = function () { $('modalPin').classList.remove('abierto'); };
-$('btnSalirAdmin').onclick = salirAdmin;
 $('pin').onkeydown = function (e) { if (e.key === 'Enter') $('btnPinEntrar').click(); };
 $('btnPinEntrar').onclick = function () {
   var pin = $('pin').value.trim();
@@ -804,6 +824,7 @@ function pintarResultados() {
     var ina = c.estatus === 'Inactivo';
     return '<div class="res' + (ina ? ' inac' : '') + '" data-c="' + esc(c.codigo) + '"><div class="av">' + esc((c.nombre || '?').trim().charAt(0).toUpperCase()) + '</div>' +
       '<div class="t"><div class="n">' + esc(c.nombre) + '</div><div class="s">' + esc(c.direccion) + (c.colonia ? ', ' + esc(c.colonia) : '') + ' · ' + esc(c.zona) + '</div></div>' +
+      (ADMIN_NOMBRE && c.handy === 'Pendiente de actualizar' ? '<span class="badge pend" title="Pendiente de actualizar en Handy">⏳</span>' : '') +
       '<span class="badge ' + (ina ? 'ina' : 'act') + '">' + (ina ? 'Inactivo' : 'Activo') + '</span></div>';
   }).join('');
   Array.prototype.forEach.call(document.querySelectorAll('.res'), function (el) {
@@ -818,7 +839,8 @@ var MOTIVOS = ['Ya no compra', 'Cerró el negocio', 'Se cambió de domicilio', '
 function abrirCliente(c) {
   cliSel = c; ocultar('cliError');
   var ina = c.estatus === 'Inactivo';
-  var filas = [['Código', c.codigo], ['Zona', c.zona], ['Dirección', c.direccion], ['Colonia', c.colonia], ['Teléfono', c.telefono], ['Encargado', c.encargado]]
+  var filas = [['Código', c.codigo], ['Zona', c.zona], ['Dirección', c.direccion], ['Colonia', c.colonia], ['Teléfono', c.telefono], ['Encargado', c.encargado],
+    ['Tipo de pago', c.tipoPago], ['Pago predet.', c.pagoPred]]
     .filter(function (x) { return x[1]; });
   $('cliDet').innerHTML = '<div class="det-h"><div><h3>' + esc(c.nombre) + '</h3><div class="cod">' + esc(c.codigo) + '</div></div>' +
     '<span class="badge ' + (ina ? 'ina' : 'act') + '">' + (ina ? 'Inactivo' : 'Activo') + '</span></div>' +
@@ -828,6 +850,18 @@ function abrirCliente(c) {
     '<label>Notas internas</label><div class="notas-lista" id="notasLista">' + htmlNotas(c.notas) + '</div>' +
     '<textarea id="nuevaNota" maxlength="500" placeholder="Agregar una nota sobre este cliente…" style="margin-top:10px"></textarea>' +
     '<button type="button" class="btn btn-sec" id="btnNota">Agregar nota</button><div class="sep"></div>';
+  if (ADMIN_NOMBRE) {
+    var tp = c.tipoPago || 'Contado y crédito', pp = c.pagoPred || 'Contado';
+    $('cliDet').innerHTML += (c.handy && c.handy !== 'Al día' ? '<div class="handy-box" id="handyBox">⏳ ' + esc(c.handy) + ' en Handy</div>' : '<div id="handyBox"></div>') +
+      '<h4 class="sec">Forma de pago</h4><div class="pago-grid">' +
+      '<div><label for="selTipo">Tipos de pago permitidos</label><select id="selTipo" class="sin-ic">' +
+        ['Contado y crédito', 'Contado', 'Crédito'].map(function (o) { return '<option' + (o === tp ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div>' +
+      '<div><label for="selPred">Pago predeterminado</label><select id="selPred" class="sin-ic"></select></div></div>' +
+      '<button type="button" class="btn btn-sec" id="btnPago">Guardar forma de pago</button><div class="sep"></div>';
+    ajustarPred(pp);
+    $('selTipo').onchange = function () { ajustarPred($('selPred').value); };
+    $('btnPago').onclick = guardarPago;
+  }
   if (!ADMIN_NOMBRE) {
     $('cliAccion').innerHTML = '<div class="solo-admin">🔒 Solo un administrador puede activar o inactivar clientes.</div>';
     $('cliBtns').innerHTML = '<button type="button" class="btn btn-sec" id="btnCerrarCli" style="grid-column:1/-1">Cerrar</button>';
@@ -844,6 +878,25 @@ function abrirCliente(c) {
   $('btnNota').onclick = agregarNota;
   if ($('btnEst')) $('btnEst').onclick = function () { guardarEstatus(ina ? 'Activo' : 'Inactivo'); };
   $('modalCli').classList.add('abierto');
+}
+function ajustarPred(actual) {
+  var t = $('selTipo').value;
+  var ops = t === 'Contado' ? ['Contado'] : (t === 'Crédito' ? ['Crédito'] : ['Contado', 'Crédito']);
+  $('selPred').innerHTML = ops.map(function (o) { return '<option' + (o === actual ? ' selected' : '') + '>' + o + '</option>'; }).join('');
+}
+function pintarHandy(estado) {
+  cliSel.handy = estado;
+  if ($('handyBox')) { $('handyBox').className = estado && estado !== 'Al día' ? 'handy-box' : ''; $('handyBox').textContent = estado && estado !== 'Al día' ? '⏳ ' + estado + ' en Handy' : ''; }
+}
+function guardarPago() {
+  ocultar('cliError');
+  var b = $('btnPago'); b.disabled = true; b.textContent = 'Guardando…';
+  api('pago', { pin: ADMIN_PIN, codigo: cliSel.codigo, tipoPago: $('selTipo').value, pagoPred: $('selPred').value }).then(function (r) {
+    b.disabled = false; b.textContent = 'Guardar forma de pago';
+    if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); if (r.pinInvalido) salirAdmin(); return; }
+    cliSel.tipoPago = r.tipoPago; cliSel.pagoPred = r.pagoPred; pintarHandy(r.handy);
+    b.textContent = '✓ Guardado'; setTimeout(function () { if ($('btnPago')) $('btnPago').textContent = 'Guardar forma de pago'; }, 1800);
+  }).catch(function (e) { b.disabled = false; b.textContent = 'Guardar forma de pago'; $('cliError').textContent = 'Sin conexión: ' + e.message; mostrar('cliError'); });
 }
 function htmlNotas(n) {
   if (!n || !n.length) return '<div class="notas-vacio">Sin notas todavía.</div>';
@@ -875,7 +928,7 @@ function guardarEstatus(nuevo) {
     b.disabled = false; b.innerHTML = original;
     if (!r.ok) { $('cliError').innerHTML = r.errores.map(esc).join('<br>'); mostrar('cliError'); if (r.pinInvalido) salirAdmin(); return; }
     cliSel.estatus = nuevo; cliSel.motivo = nuevo === 'Inactivo' ? motivo : ''; cliSel.nota = nuevo === 'Inactivo' ? nota : '';
-    cliSel.fechaEstatus = r.fecha || ''; cliSel.por = r.por || ADMIN_NOMBRE;
+    cliSel.fechaEstatus = r.fecha || ''; cliSel.por = r.por || ADMIN_NOMBRE; cliSel.handy = r.handy || cliSel.handy;
     cerrarCliente(); pintarResultados();
   }).catch(function (e) { b.disabled = false; b.innerHTML = original; $('cliError').textContent = 'Sin conexión: ' + e.message; mostrar('cliError'); });
 }
