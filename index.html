@@ -308,18 +308,74 @@
   .nota-item small { font-size: 13.5px; }
   footer { font-size: 13.5px; }
   .chips-nota .chip { font-size: 15px; padding: 9px 13px; }
+
+  /* ---------- Mapa ---------- */
+  .mapa-wrap { position: relative; }
+  .mapa { height: 330px; }
+  .mapa.arrastrando { cursor: grabbing; }
+  .pin-alday { background: none; border: 0; }
+  .pin-alday svg { display: block; transition: transform .12s; }
+  .arrastrando .pin-alday svg { transform: translateY(-8px) scale(1.08); }
+  .capas { position: absolute; top: 10px; left: 10px; z-index: 500; display: flex; background: #fff; border-radius: 12px; padding: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+  .capa { font: inherit; font-size: 15px; font-weight: 700; border: 0; background: transparent; color: #334155; padding: 8px 14px; border-radius: 9px; cursor: pointer; }
+  .capa.activa { background: var(--navy); color: #fff; }
+  .centrar { position: absolute; top: 10px; right: 10px; z-index: 500; width: 46px; height: 46px; border-radius: 12px; border: 0; background: #fff;
+    color: var(--azul); box-shadow: 0 2px 10px rgba(0,0,0,.25); display: grid; place-items: center; cursor: pointer; }
+  .centrar svg { width: 24px; height: 24px; }
+  .leaflet-bar a { width: 40px !important; height: 40px !important; line-height: 40px !important; font-size: 22px !important; }
+  .leaflet-control-attribution { font-size: 10px !important; }
+
+  /* ================= RENOVACIÓN VISUAL ================= */
+  :root { --navy: #0a1a3f; --navy2: #132b66; --azul: #2557e8; --azul-osc: #1a3fb4; --acento: #f5b301; --fondo: #eef2f8; }
+  body { background: linear-gradient(180deg, #eef2f8 0%, #f6f8fc 100%) fixed; }
+  .top { background: radial-gradient(130% 160% at 100% 0%, #2a57d8 0%, #132b66 42%, #0a1a3f 100%); padding-bottom: 70px; }
+  .top::before { content: ""; position: absolute; inset: 0; opacity: .08;
+    background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 18px 18px; }
+  .top::after { width: 260px; height: 260px; right: -80px; top: -90px; background: rgba(245,179,1,.10); }
+  .logo { width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(145deg, #f8c63a, #e09b00); border: 0;
+    box-shadow: 0 6px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.4); }
+  .logo span { font-weight: 900; font-size: 19px; color: #0a1a3f; letter-spacing: -.5px; }
+  .top h1 { font-size: 21px; font-weight: 800; letter-spacing: -.3px; line-height: 1.15; }
+  .top p { font-size: 13.5px; margin-top: 4px; color: rgba(255,255,255,.78); }
+  main { margin-top: -50px; }
+  .card { border: 0; border-radius: 20px; box-shadow: 0 1px 2px rgba(10,26,63,.06), 0 10px 30px rgba(10,26,63,.08); }
+  .card-h { padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1.5px solid #edf1f7; }
+  .paso { background: var(--navy); color: #fff; border-radius: 11px; box-shadow: 0 3px 8px rgba(10,26,63,.25); }
+  .paso svg { stroke: #fff; }
+  input, select, textarea { border-radius: 14px; border-color: #c9d3e3; }
+  input:focus, select:focus, textarea:focus { border-color: var(--azul); box-shadow: 0 0 0 4px rgba(37,87,232,.15); }
+  .tabs { border-radius: 18px; padding: 6px; border: 0; box-shadow: 0 8px 24px rgba(10,26,63,.12); }
+  .tab { border-radius: 13px; }
+  .tab.activa { background: var(--navy); color: #fff; box-shadow: 0 4px 12px rgba(10,26,63,.25); }
+  .frec { border-radius: 16px; background: #fff; }
+  .frec.sel { background: #eaf0ff; border-color: var(--azul); }
+  .frec.sel::after { background: var(--azul); width: 24px; height: 24px; font-size: 14px; }
+  .btn-pri { background: linear-gradient(180deg, #2f63f0, #1a3fb4); border-radius: 16px; box-shadow: 0 10px 22px rgba(37,87,232,.35); letter-spacing: .2px; }
+  .btn-sec { border-radius: 14px; border-width: 2px; }
+  .barra { background: rgba(255,255,255,.9); border-top: 1px solid #e2e8f0; }
+  .elegida { border: 0; border-radius: 18px; background: #fff; box-shadow: 0 0 0 2px #b7e4c7; }
+  .eleg-h { background: #e8f7ee; padding: 12px 14px; margin-bottom: 4px; color: #14743a; }
+  .mapa-ayuda { background: #fffbea; color: #6b4e00; border-top: 1px solid #f3e3a6; }
+  .grupo { background: var(--navy); color: #fff; border-radius: 12px; }
+  .grupo small { color: rgba(255,255,255,.8); }
+  .res { border-radius: 12px; padding: 14px 8px; }
+  .res .av { border-radius: 14px; background: #eaf0ff; color: var(--azul-osc); font-weight: 800; }
+  .chip.activa { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn-admin.on { background: var(--acento); color: var(--navy); border-color: var(--acento); }
+  .admin-banner { background: linear-gradient(90deg, #0a1a3f, #132b66); border-radius: 12px; font-size: 14px; }
+  .exito .codigo { color: var(--navy); }
+  .check { background: #e8f7ee; }
   footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="logo">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-4h4v4"/></svg>
-    </div>
+    <div class="logo"><span>CA</span></div>
     <div style="flex:1;min-width:0">
       <h1>Comercializadora Alday</h1>
-      <p>Alta y control de clientes</p>
+      <p>Plataforma de clientes</p>
     </div>
     <button type="button" class="btn-admin" id="btnAdmin" aria-label="Acceso administrador">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -454,7 +510,16 @@
           </div>
         </div>
         <div class="mapa-ayuda">📍 <b>Revisa el pin.</b> Si no está justo en la tienda, <b>arrástralo</b> con el dedo o <b>toca el mapa</b> donde está.</div>
-        <div id="mapa" class="mapa"></div>
+        <div class="mapa-wrap">
+          <div id="mapa" class="mapa"></div>
+          <div class="capas" id="capas">
+            <button type="button" class="capa activa" data-c="sat">Satélite</button>
+            <button type="button" class="capa" data-c="mapa">Mapa</button>
+          </div>
+          <button type="button" class="centrar" id="btnCentrar" aria-label="Centrar en el pin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
+          </button>
+        </div>
         <div class="pin-ok" id="pinOk">✅ Ubicación ajustada. Se guardará donde dejaste el pin.</div>
         <button type="button" class="btn btn-sec" id="btnCambiar">Cambiar dirección</button>
       </div>
@@ -464,7 +529,7 @@
         <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
       </div>
     </section>
-    <footer>Todos los campos son obligatorios · v3.0</footer>
+    <footer>Todos los campos son obligatorios · v3.1</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -733,22 +798,51 @@ $('btnCambiar').onclick = function () {
 
 // ---------- Mapa con pin movible (Leaflet + OpenStreetMap / satélite) ----------
 var MAPA = null, PIN = null, timerRev = null;
+var CAPAS = null;
+var ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+function iconoPin() {
+  return L.divIcon({ className: 'pin-alday', iconSize: [46, 58], iconAnchor: [23, 56],
+    html: '<svg viewBox="0 0 46 58" width="46" height="58"><defs><filter id="sh" x="-30%" y="-20%" width="160%" height="150%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity=".35"/></filter></defs>' +
+      '<path filter="url(#sh)" d="M23 2C12 2 4 10.3 4 20.6 4 34.5 23 55 23 55s19-20.5 19-34.4C42 10.3 34 2 23 2z" fill="#ea4335" stroke="#b31412" stroke-width="1.5"/>' +
+      '<circle cx="23" cy="21" r="7.5" fill="#7a0b08"/></svg>' });
+}
 function ponerMapa(lat, lng) {
   var cont = $('mapa');
   if (typeof L === 'undefined') {   // si no cargó la librería, mapa de solo vista
     cont.innerHTML = '<iframe title="Mapa" src="https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=18&output=embed"></iframe>';
+    $('capas').style.display = 'none'; $('btnCentrar').style.display = 'none';
     return;
   }
   if (!MAPA) {
-    var calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
-    var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' });
-    MAPA = L.map(cont, { layers: [calles], zoomControl: true, tap: true }).setView([lat, lng], 18);
-    L.control.layers({ 'Mapa': calles, 'Satélite': sat }, null, { position: 'topright' }).addTo(MAPA);
-    PIN = L.marker([lat, lng], { draggable: true, autoPan: true }).addTo(MAPA);
-    PIN.on('dragend', function () { var p = PIN.getLatLng(); moverPin(p.lat, p.lng); });
+    var op = { maxZoom: 20, maxNativeZoom: 19 };
+    CAPAS = {
+      // Satélite con nombres de calles y lugares encima (parecido a la vista satélite de Google)
+      sat: L.layerGroup([
+        L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', L.extend({ attribution: 'Imágenes © Esri' }, op)),
+        L.tileLayer(ESRI + 'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', op),
+        L.tileLayer(ESRI + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', op)
+      ]),
+      // Mapa de calles con el contorno de casas y edificios
+      mapa: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', L.extend({ attribution: '© OpenStreetMap' }, op))
+    };
+    MAPA = L.map(cont, { layers: [CAPAS.sat], zoomControl: false, tap: true, attributionControl: true }).setView([lat, lng], 19);
+    L.control.zoom({ position: 'bottomright' }).addTo(MAPA);
+    MAPA.attributionControl.setPrefix(false);
+    PIN = L.marker([lat, lng], { draggable: true, autoPan: true, icon: iconoPin() }).addTo(MAPA);
+    PIN.on('dragstart', function () { cont.classList.add('arrastrando'); });
+    PIN.on('dragend', function () { cont.classList.remove('arrastrando'); var p = PIN.getLatLng(); moverPin(p.lat, p.lng); });
     MAPA.on('click', function (e) { PIN.setLatLng(e.latlng); moverPin(e.latlng.lat, e.latlng.lng); });
+    Array.prototype.forEach.call(document.querySelectorAll('#capas .capa'), function (b) {
+      b.onclick = function () {
+        var c = b.getAttribute('data-c');
+        Object.keys(CAPAS).forEach(function (k) { if (MAPA.hasLayer(CAPAS[k])) MAPA.removeLayer(CAPAS[k]); });
+        CAPAS[c].addTo(MAPA);
+        Array.prototype.forEach.call(document.querySelectorAll('#capas .capa'), function (x) { x.classList.toggle('activa', x === b); });
+      };
+    });
+    $('btnCentrar').onclick = function () { MAPA.setView(PIN.getLatLng(), 19); };
   } else {
-    PIN.setLatLng([lat, lng]); MAPA.setView([lat, lng], 18);
+    PIN.setLatLng([lat, lng]); MAPA.setView([lat, lng], 19);
   }
   setTimeout(function () { MAPA.invalidateSize(); }, 120);
 }
