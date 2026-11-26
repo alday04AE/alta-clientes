@@ -6,8 +6,10 @@
 <meta name="theme-color" content="#0b1736">
 <meta name="color-scheme" content="light only">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Alta clientes">
-<title>Alta de clientes</title>
+<meta name="apple-mobile-web-app-title" content="Alday Clientes">
+<title>Comercializadora Alday · Clientes</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" media="print" onload="this.media='all'">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
 <style>
   :root { color-scheme: light only; }
   html { background: #f4f6fb; }
@@ -243,6 +245,69 @@
   .pin-input { text-align: center; font-size: 24px !important; letter-spacing: 8px; padding: 14px !important; }
   .solo-admin { font-size: 13px; color: var(--gris); background: #f8fafc; border: 1px dashed var(--borde); border-radius: 12px;
     padding: 11px 14px; margin-top: 4px; }
+  /* ---------- Mapa con pin movible ---------- */
+  .eleg-campos { padding: 0 14px 6px; }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mapa-ayuda { padding: 10px 14px; font-size: 15px; line-height: 1.4; color: #14532d; background: #dcfce7; border-top: 1px solid #bfe5cf; }
+  .mapa { height: 290px; width: 100%; background: #e5e7eb; z-index: 1; }
+  .mapa iframe { width: 100%; height: 100%; border: 0; }
+  .pin-ok { display: none; padding: 9px 14px; font-size: 14.5px; font-weight: 600; color: #14532d; background: #fff; border-top: 1px solid #bfe5cf; }
+  .leaflet-control-layers-toggle { width: 40px !important; height: 40px !important; }
+  .leaflet-control-layers label { font-size: 15px; margin: 6px 0; }
+  #gpsAviso { margin-top: 12px; font-size: 15px; }
+  #gpsAviso ol { margin: 8px 0 0; padding-left: 20px; }
+  #gpsAviso li { margin-bottom: 4px; }
+
+  /* ---------- Lista de clientes ---------- */
+  .lista-top { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 15px; color: var(--gris); font-weight: 600; }
+  .link-btn { font: inherit; font-size: 15px; font-weight: 700; color: var(--azul); background: none; border: 0; padding: 6px 0; cursor: pointer; }
+  .grupo { position: sticky; top: 0; z-index: 2; background: #e8eefc; color: var(--azul-osc); font-weight: 800; font-size: 15.5px;
+    padding: 10px 12px; border-radius: 10px; margin: 14px 0 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .grupo small { font-weight: 600; color: #3b4a7a; font-size: 13.5px; text-align: right; }
+
+  /* ================= LEGIBILIDAD: letras más grandes y más contraste ================= */
+  :root { --gris: #475569; --borde: #cbd5e1; --texto: #0b1220; }
+  body { font-size: 17px; }
+  .top h1 { font-size: 22px; }
+  .top p { font-size: 15px; color: rgba(255,255,255,.85); }
+  .card { padding: 20px 18px 22px; }
+  .card-h h2 { font-size: 19px; }
+  .card-h span { font-size: 15px; color: #334155; }
+  .paso { width: 34px; height: 34px; font-size: 16px; }
+  label { font-size: 16px; font-weight: 700; color: var(--texto); margin: 18px 0 8px; }
+  input, select, textarea { font-size: 18px !important; border-width: 2px; background-color: #fff; color: var(--texto); }
+  input, select { padding-top: 15px; padding-bottom: 15px; }
+  input::placeholder, textarea::placeholder { color: #8a94a6; }
+  .campo svg.ic { width: 20px; height: 20px; color: #64748b; }
+  .ayuda { font-size: 15px; color: #334155; }
+  .error-campo { font-size: 15px; font-weight: 700; }
+  .frec { padding: 14px 16px; border-width: 2px; }
+  .frec b { font-size: 18px; }
+  .frec span { font-size: 15px; color: #334155; }
+  .sug { font-size: 16.5px; padding: 15px 14px 15px 44px; }
+  .sug small { font-size: 14px; font-weight: 600; }
+  .btn { font-size: 17.5px; padding: 16px; }
+  .btn-pri { font-size: 19px; padding: 17px; }
+  .tab { font-size: 16.5px; padding: 13px 8px; }
+  .chip { font-size: 15px; padding: 9px 15px; border-width: 2px; }
+  .res { padding: 15px 4px; }
+  .res .n { font-size: 17.5px; }
+  .res .s { font-size: 15px; color: #475569; }
+  .res .av { width: 44px; height: 44px; font-size: 17px; }
+  .badge { font-size: 13.5px; padding: 5px 10px; }
+  .elegida td { font-size: 16.5px; padding: 6px 14px; }
+  .elegida td:first-child { font-size: 15px; color: #365a45; }
+  .eleg-h { font-size: 16px; }
+  .resumen .fila { font-size: 16.5px; padding: 12px 14px; }
+  .resumen .k { font-size: 15px; width: 104px; color: #475569; }
+  .hoja h3 { font-size: 21px; }
+  .hoja .sub { font-size: 15px; color: #334155; }
+  .aviso { font-size: 15.5px; }
+  .vacio { font-size: 16px; }
+  .nota-item { font-size: 16px; }
+  .nota-item small { font-size: 13.5px; }
+  footer { font-size: 13.5px; }
+  .chips-nota .chip { font-size: 15px; padding: 9px 13px; }
   footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
@@ -253,7 +318,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-4h4v4"/></svg>
     </div>
     <div style="flex:1;min-width:0">
-      <h1>Clientes</h1>
+      <h1>Comercializadora Alday</h1>
       <p>Alta y control de clientes</p>
     </div>
     <button type="button" class="btn-admin" id="btnAdmin" aria-label="Acceso administrador">
@@ -351,11 +416,12 @@
       <label for="buscar">Dirección <span class="req">*</span></label>
       <div class="campo">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="buscar" placeholder="Calle y número, ej. Aguascalientes 300">
+        <input id="buscar" placeholder="Escribe la calle, ej. Aguascalientes 300">
       </div>
-      <div class="ayuda">Escribe y <b>elige una opción de la lista</b>. Debe incluir número exterior.</div>
+      <div class="ayuda">Escribe la calle y <b>toca una opción de la lista</b>. El número exterior lo confirmas después.</div>
       <div class="cargando" id="buscando">Buscando en Google Maps…</div>
       <div class="sugerencias" id="sugerencias"></div>
+      <div class="aviso amarillo" id="gpsAviso"></div>
       <button type="button" class="btn btn-sec" id="btnGps">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
         Usar mi ubicación actual
@@ -366,16 +432,30 @@
         <div class="eleg-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Dirección verificada</div>
         <table>
           <tr><td>Calle</td><td id="d_calle"></td></tr>
-          <tr><td>Número</td><td id="d_numero"></td></tr>
           <tr><td>Colonia</td><td id="d_colonia"></td></tr>
-          <tr><td>C.P.</td><td id="d_cp"></td></tr>
           <tr><td>Municipio</td><td id="d_ciudad"></td></tr>
         </table>
-        <div id="colManual" style="display:none">
-          <label for="coloniaManual">Colonia <span class="req">*</span></label>
-          <input id="coloniaManual" placeholder="Google no trajo la colonia, escríbela" style="padding-left:14px;margin-bottom:12px">
+        <div class="eleg-campos">
+          <div class="dos">
+            <div>
+              <label for="numExt">Número exterior <span class="req">*</span></label>
+              <input id="numExt" class="sin-ic" inputmode="text" maxlength="12" placeholder="Ej. 528">
+            </div>
+            <div>
+              <label for="cpEdit">Código postal <span class="req">*</span></label>
+              <input id="cpEdit" class="sin-ic" inputmode="numeric" maxlength="5" placeholder="66000">
+            </div>
+          </div>
+          <div class="error-campo" id="e_num">Escribe el número exterior.</div>
+          <div class="error-campo" id="e_cp">El código postal debe tener 5 números.</div>
+          <div id="colManual" style="display:none">
+            <label for="coloniaManual">Colonia <span class="req">*</span></label>
+            <input id="coloniaManual" class="sin-ic" placeholder="Google no trajo la colonia, escríbela">
+          </div>
         </div>
-        <iframe id="mapa" title="Mapa" loading="lazy"></iframe>
+        <div class="mapa-ayuda">📍 <b>Revisa el pin.</b> Si no está justo en la tienda, <b>arrástralo</b> con el dedo o <b>toca el mapa</b> donde está.</div>
+        <div id="mapa" class="mapa"></div>
+        <div class="pin-ok" id="pinOk">✅ Ubicación ajustada. Se guardará donde dejaste el pin.</div>
         <button type="button" class="btn btn-sec" id="btnCambiar">Cambiar dirección</button>
       </div>
       <div class="aviso rojo" id="avisoRojo"></div>
@@ -384,7 +464,7 @@
         <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
       </div>
     </section>
-    <footer>Todos los campos son obligatorios · v2.1</footer>
+    <footer>Todos los campos son obligatorios · v3.0</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -400,18 +480,20 @@
     <div id="modoBuscar" style="display:none">
       <section class="card">
         <div class="card-h"><div class="paso"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-          <div><h2>Buscar cliente</h2><span>Por nombre, teléfono, código, calle o colonia</span></div></div>
-        <label for="q">Buscar <span class="req"></span></label>
+          <div><h2>Mis clientes</h2><span>Toca un cliente para ver su información</span></div></div>
+        <label for="q">Buscar en la lista</label>
         <div class="campo">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-          <input id="q" placeholder="Ej. Lupita, 8123456789, R4-0012…" enterkeyhint="search">
+          <input id="q" placeholder="Nombre, teléfono, calle o colonia" enterkeyhint="search" autocomplete="off">
         </div>
         <div class="filtros" id="filtroEst">
           <button type="button" class="chip activa" data-e="">Todos</button>
           <button type="button" class="chip" data-e="Activo">Activos</button>
           <button type="button" class="chip" data-e="Inactivo">Inactivos</button>
         </div>
-        <div class="cargando" id="buscandoCli">Buscando…</div>
+        <div class="filtros" id="filtroZona"></div>
+        <div class="lista-top"><span id="cuentaCli"></span><button type="button" class="link-btn" id="btnRecargar">↻ Actualizar lista</button></div>
+        <div class="cargando" id="buscandoCli">Cargando clientes…</div>
         <div id="resultados"></div>
       </section>
     </div><!-- /modoBuscar -->
@@ -555,7 +637,7 @@ function aplicarVendedorBase() {
   }
   nota.style.display = 'block';
   nota.textContent = asignadas.length === 1 ? 'Ruta asignada a ' + v + '.' : 'Rutas asignadas a ' + v + '.';
-  if ($('modoBuscar').style.display === 'block' && $('q').value.trim().length >= 3) buscarCli();
+  if ($('modoBuscar').style.display === 'block') cargarLista(false);
   if (r.value !== previa) frecuencia = '';
   guardarLocal('ruta', r.value);
   if (r.value) ocultar('e_ruta');
@@ -607,16 +689,13 @@ function pintarSugerencias(res, msgVacio) {
   var box = $('sugerencias');
   if (!res.length) { box.innerHTML = '<div class="sug sin-num">' + esc(msgVacio) + '</div>'; box.style.display = 'block'; return; }
   box.innerHTML = res.map(function (r, i) {
-    var ok = r.numero && r.cp;
-    return '<div class="sug' + (ok ? '' : ' sin-num') + '" data-i="' + i + '">' + esc(r.etiqueta) +
-      (ok ? '' : '<small>' + (r.numero ? 'Sin código postal, elige otra opción' : 'Falta el número exterior: agrégalo a lo que escribiste') + '</small>') + '</div>';
+    return '<div class="sug" data-i="' + i + '">' + esc(r.etiqueta) +
+      (r.numero ? '' : '<small>Sin número: lo escribes en el siguiente paso</small>') + '</div>';
   }).join('');
   box.style.display = 'block';
   Array.prototype.forEach.call(box.querySelectorAll('.sug[data-i]'), function (el) {
     el.onclick = function () {
-      var r = res[+el.getAttribute('data-i')];
-      if (!r.numero || !r.cp) return;
-      elegir(r);
+      elegir(res[+el.getAttribute('data-i')]);
     };
   });
 }
@@ -625,14 +704,17 @@ function elegir(r) {
   direccion = r;
   $('sugerencias').style.display = 'none';
   $('buscar').value = r.etiqueta;
-  $('d_calle').textContent = r.calle; $('d_numero').textContent = r.numero;
-  $('d_colonia').textContent = r.colonia || '—'; $('d_cp').textContent = r.cp; $('d_ciudad').textContent = r.ciudad;
+  $('d_calle').textContent = r.calle;
+  $('d_colonia').textContent = r.colonia || '—'; $('d_ciudad').textContent = r.ciudad;
+  $('numExt').value = r.numero || ''; $('cpEdit').value = r.cp || '';
   $('colManual').style.display = r.colonia ? 'none' : 'block';
   $('coloniaManual').value = '';
-  $('mapa').src = 'https://maps.google.com/maps?q=' + r.lat + ',' + r.lng + '&z=17&output=embed';
+  ocultar('e_num'); ocultar('e_cp'); ocultar('pinOk'); ocultar('gpsAviso');
   $('elegida').style.display = 'block';
   $('buscar').parentNode.style.display = 'none';
   ocultar('e_direccion');
+  ponerMapa(r.lat, r.lng);
+  if (!r.numero) setTimeout(function () { $('numExt').focus(); }, 150);
   revisar();
 }
 
@@ -644,24 +726,91 @@ function limpiarDireccion() {
 
 $('btnCambiar').onclick = function () {
   limpiarDireccion();
-  $('buscar').parentNode.style.display = 'block'; $('buscar').value = ''; $('buscar').focus();
+  $('buscar').parentNode.style.display = 'block'; $('buscar').value = ''; ocultar('pinOk'); $('buscar').focus();
 };
 
 // ---------- GPS ----------
-$('btnGps').onclick = function () {
-  if (!navigator.geolocation) { mostrarError('Este teléfono no permite obtener la ubicación. Escribe la dirección.'); return; }
-  $('buscando').style.display = 'block'; $('buscando').textContent = 'Obteniendo tu ubicación…';
+
+// ---------- Mapa con pin movible (Leaflet + OpenStreetMap / satélite) ----------
+var MAPA = null, PIN = null, timerRev = null;
+function ponerMapa(lat, lng) {
+  var cont = $('mapa');
+  if (typeof L === 'undefined') {   // si no cargó la librería, mapa de solo vista
+    cont.innerHTML = '<iframe title="Mapa" src="https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=18&output=embed"></iframe>';
+    return;
+  }
+  if (!MAPA) {
+    var calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' });
+    MAPA = L.map(cont, { layers: [calles], zoomControl: true, tap: true }).setView([lat, lng], 18);
+    L.control.layers({ 'Mapa': calles, 'Satélite': sat }, null, { position: 'topright' }).addTo(MAPA);
+    PIN = L.marker([lat, lng], { draggable: true, autoPan: true }).addTo(MAPA);
+    PIN.on('dragend', function () { var p = PIN.getLatLng(); moverPin(p.lat, p.lng); });
+    MAPA.on('click', function (e) { PIN.setLatLng(e.latlng); moverPin(e.latlng.lat, e.latlng.lng); });
+  } else {
+    PIN.setLatLng([lat, lng]); MAPA.setView([lat, lng], 18);
+  }
+  setTimeout(function () { MAPA.invalidateSize(); }, 120);
+}
+function moverPin(lat, lng) {
+  if (!direccion) return;
+  direccion.lat = Math.round(lat * 1e7) / 1e7; direccion.lng = Math.round(lng * 1e7) / 1e7; direccion.ajustado = true;
+  mostrar('pinOk');
+  clearTimeout(timerRev); timerRev = setTimeout(revisar, 600);
+}
+function syncDir() {
+  if (!direccion) return;
+  direccion.numero = $('numExt').value.trim();
+  direccion.cp = $('cpEdit').value.replace(/\D/g, '').slice(0, 5);
+  clearTimeout(timerRev); timerRev = setTimeout(revisar, 700);
+}
+$('numExt').oninput = function () { ocultar('e_num'); this.classList.remove('invalido'); syncDir(); };
+$('cpEdit').oninput = function () { this.value = this.value.replace(/\D/g, '').slice(0, 5); ocultar('e_cp'); this.classList.remove('invalido'); syncDir(); };
+
+// ---------- GPS con instrucciones claras ----------
+function esIOS() { return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
+function enApp() { return /FBAN|FBAV|Instagram|WhatsApp|Line\//i.test(navigator.userAgent); }
+function avisoGps(codigo) {
+  var t;
+  if (codigo === 1) {
+    t = '<b>El teléfono no dio permiso de ubicación.</b>' + (esIOS()
+      ? '<ol><li>Abre <b>Ajustes → Privacidad y seguridad → Localización</b> y actívala.</li>' +
+        '<li>En esa misma lista entra a <b>Safari</b> (o <b>Chrome</b> si usas Chrome) y elige <b>"Al usar la app"</b> con <b>Ubicación exacta</b> encendida.</li>' +
+        '<li>Si abriste la liga desde WhatsApp, ábrela directo en <b>Safari</b>.</li>' +
+        '<li>Vuelve aquí, recarga la página y toca otra vez el botón.</li></ol>'
+      : '<ol><li>Toca el <b>candado</b> o el ícono junto a la dirección de la página → <b>Permisos → Ubicación → Permitir</b>.</li>' +
+        '<li>Revisa que la <b>Ubicación</b> del teléfono esté encendida (desliza la barra de arriba).</li>' +
+        '<li>Si abriste la liga desde WhatsApp, ábrela en <b>Chrome</b>.</li>' +
+        '<li>Recarga la página y toca otra vez el botón.</li></ol>');
+  } else if (codigo === 2) {
+    t = '<b>No se encontró la señal de ubicación.</b><br>Enciende la ubicación o GPS del teléfono, sal a un lugar abierto y vuelve a intentar.';
+  } else {
+    t = '<b>La ubicación tardó demasiado.</b><br>Vuelve a tocar el botón. Si sigue fallando, escribe la calle y acomoda el pin en el mapa.';
+  }
+  t += '<br><br>Mientras tanto puedes <b>escribir la calle</b> arriba y luego mover el pin en el mapa.';
+  $('gpsAviso').innerHTML = t; mostrar('gpsAviso');
+}
+function pedirGps(alta) {
   navigator.geolocation.getCurrentPosition(function (p) {
+    $('buscando').textContent = 'Buscando la dirección…';
     api('gps', { lat: p.coords.latitude, lng: p.coords.longitude }).then(function (res) {
       $('buscando').style.display = 'none'; $('buscando').textContent = 'Buscando en Google Maps…';
       limpiarDireccion(); $('buscar').parentNode.style.display = 'block';
-      pintarSugerencias(res, 'No se encontró dirección en esta ubicación. Escríbela.');
+      pintarSugerencias(res, 'No se encontró dirección en esta ubicación. Escribe la calle.');
     }).catch(function (e) { $('buscando').style.display = 'none'; $('buscando').textContent = 'Buscando en Google Maps…'; fallo(e); });
-  }, function () {
+  }, function (err) {
+    if (alta && err && err.code !== 1) { pedirGps(false); return; }   // reintento con precisión normal
     $('buscando').style.display = 'none'; $('buscando').textContent = 'Buscando en Google Maps…';
-    $('btnGps').style.display = 'none';
-    mostrarError('No se pudo usar el GPS aquí. Escribe la dirección y elígela de la lista.');
-  }, { enableHighAccuracy: true, timeout: 15000 });
+    avisoGps(err ? err.code : 3);
+  }, alta ? { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 } : { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 });
+}
+
+$('btnGps').onclick = function () {
+  ocultar('gpsAviso');
+  if (!navigator.geolocation || (window.isSecureContext === false)) { avisoGps(1); return; }
+  if (enApp()) { $('gpsAviso').innerHTML = '<b>Estás dentro de otra app.</b> Si la ubicación no funciona, abre la liga en ' + (esIOS() ? 'Safari' : 'Chrome') + '.'; mostrar('gpsAviso'); }
+  $('buscando').style.display = 'block'; $('buscando').textContent = 'Obteniendo tu ubicación…';
+  pedirGps(true);
 };
 
 // ---------- Duplicados ----------
@@ -694,7 +843,12 @@ $('btnGuardar').onclick = function () {
   if ($('encargado').value.trim().length < 2) { mostrar('e_encargado'); $('encargado').classList.add('invalido'); ok = false; }
   if (tel.length !== 10) { mostrar('e_telefono'); $('telefono').classList.add('invalido'); ok = false; }
   if (!direccion) { mostrar('e_direccion'); ok = false; }
-  else if (!direccion.colonia && $('coloniaManual').value.trim().length < 3) { mostrarError('Escribe la colonia.'); ok = false; }
+  else {
+    syncDir();
+    if (!direccion.numero) { mostrar('e_num'); $('numExt').classList.add('invalido'); ok = false; }
+    if (!/^\d{5}$/.test(direccion.cp)) { mostrar('e_cp'); $('cpEdit').classList.add('invalido'); ok = false; }
+    if (!direccion.colonia && $('coloniaManual').value.trim().length < 3) { mostrarError('Escribe la colonia.'); ok = false; }
+  }
   if (bloqueado) { mostrarError('Este cliente ya existe. Revisa el aviso rojo.'); ok = false; }
   if (!$('avisoAmarillo').style.display.match(/none|^$/) && !$('confirmaDistinto').checked) { mostrarError('Marca la casilla para confirmar que es un negocio distinto.'); ok = false; }
   if (!ok) { var p = document.querySelector('.error-campo[style*="block"]'); if (p) p.scrollIntoView({ block: 'center' }); return; }
@@ -733,7 +887,7 @@ function enviar(datos) {
       ocultar('errorGeneral'); $('formulario').style.display = 'none'; $('exito').style.display = 'block';
       $('exitoCodigo').textContent = r.codigo;
       $('exitoDetalle').textContent = datos.nombre + ' · ' + r.zona;
-      idEnvio = nuevoId();
+      idEnvio = nuevoId(); LLAVE_LISTA = '';
       window.scrollTo(0, 0);
     } else if (r.requiereConfirmacion) {
       pintarAvisos([], r.avisos);
@@ -775,7 +929,7 @@ function pintarAdmin() {
 function salirAdmin() {
   ADMIN_PIN = ''; ADMIN_NOMBRE = '';
   try { sessionStorage.removeItem('adm'); } catch (e) {}
-  pintarAdmin(); ultimosRes = []; $('resultados').innerHTML = ''; $('q').value = '';
+  pintarAdmin(); ultimosRes = []; LLAVE_LISTA = ''; $('resultados').innerHTML = ''; $('q').value = ''; if ($('modoBuscar').style.display === 'block') cargarLista(true);
 }
 $('btnAdmin').onclick = function () {
   if (ADMIN_NOMBRE) { salirAdmin(); return; }
@@ -803,7 +957,7 @@ function cambiarModo(m) {
   $('tabBuscar').classList.toggle('activa', m === 'buscar');
   $('modoNuevo').style.display = m === 'nuevo' ? 'block' : 'none';
   $('modoBuscar').style.display = m === 'buscar' ? 'block' : 'none';
-  if (m === 'buscar') setTimeout(function () { $('q').focus(); }, 50);
+  if (m === 'buscar') cargarLista(false);
 }
 $('tabNuevo').onclick = function () { cambiarModo('nuevo'); };
 $('tabBuscar').onclick = function () { cambiarModo('buscar'); };
@@ -815,33 +969,75 @@ Array.prototype.forEach.call(document.querySelectorAll('#filtroEst .chip'), func
   };
 });
 
-$('q').oninput = function () {
-  clearTimeout(timerCli);
-  if (this.value.trim().length < 3) { ultimosRes = []; $('resultados').innerHTML = '<div class="vacio">Escribe al menos 3 letras o números.</div>'; return; }
-  timerCli = setTimeout(buscarCli, 500);
-};
-
-function buscarCli() {
+var LLAVE_LISTA = '', ZONA_SEL = '';
+function cargarLista(forzar) {
+  var v = $('vendedor').value;
+  if (!ADMIN_NOMBRE && !v) { $('resultados').innerHTML = '<div class="vacio">Primero selecciona tu nombre arriba.</div>'; return; }
+  var llave = (ADMIN_NOMBRE ? 'admin:' + ADMIN_NOMBRE : v);
+  if (!forzar && llave === LLAVE_LISTA && ultimosRes.length) { pintarResultados(); return; }
   var mio = ++seqCli;
-  $('buscandoCli').style.display = 'block';
-  api('buscarClientes', { vendedor: $('vendedor').value, texto: $('q').value, pin: ADMIN_PIN }).then(function (res) {
+  $('buscandoCli').style.display = 'block'; $('resultados').innerHTML = '';
+  api('listaClientes', { vendedor: v, pin: ADMIN_PIN }).then(function (res) {
     if (mio !== seqCli) return;
     $('buscandoCli').style.display = 'none';
-    ultimosRes = res; pintarResultados();
-  }).catch(function (e) { if (mio === seqCli) { $('buscandoCli').style.display = 'none'; if (/PIN/.test(e.message)) salirAdmin(); $('resultados').innerHTML = '<div class="vacio">' + esc(e.message) + '</div>'; } });
+    ultimosRes = res; LLAVE_LISTA = llave; ZONA_SEL = ''; pintarZonas(); pintarResultados();
+  }).catch(function (e) {
+    if (mio !== seqCli) return;
+    $('buscandoCli').style.display = 'none'; if (/PIN/.test(e.message)) salirAdmin();
+    $('resultados').innerHTML = '<div class="vacio">' + esc(e.message) + '<br><br><button type="button" class="btn btn-sec" onclick="cargarLista(true)">Reintentar</button></div>';
+  });
+}
+function buscarCli() { cargarLista(true); }
+$('btnRecargar').onclick = function () { cargarLista(true); };
+$('q').oninput = function () { pintarResultados(); };
+
+function zonasDe(lista) {
+  var z = {}; lista.forEach(function (c) { z[c.zona || 'Sin zona'] = true; });
+  return Object.keys(z).sort();
+}
+function pintarZonas() {
+  var zs = zonasDe(ultimosRes);
+  if (zs.length < 2) { $('filtroZona').innerHTML = ''; return; }
+  $('filtroZona').innerHTML = ['<button type="button" class="chip' + (ZONA_SEL ? '' : ' activa') + '" data-z="">Todas las frecuencias</button>']
+    .concat(zs.map(function (z) { return '<button type="button" class="chip' + (ZONA_SEL === z ? ' activa' : '') + '" data-z="' + esc(z) + '">' + esc(z) + '</button>'; })).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('#filtroZona .chip'), function (c) {
+    c.onclick = function () { ZONA_SEL = c.getAttribute('data-z'); pintarZonas(); pintarResultados(); };
+  });
+}
+function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function diasDeZona(z) {
+  var p = String(z).split('-'), r = (p[0] || '').trim(), f = (p[1] || '').trim();
+  var x = ((CFG && CFG.rutas[r]) || []).filter(function (o) { return o.frecuencia === f; })[0];
+  return x ? x.dias : '';
 }
 
 function pintarResultados() {
-  if ($('q').value.trim().length < 3) return;
-  var lista = ultimosRes.filter(function (c) { return !filtroEst || c.estatus === filtroEst; });
-  if (!lista.length) { $('resultados').innerHTML = '<div class="vacio">No se encontraron clientes en tu ruta.</div>'; return; }
-  $('resultados').innerHTML = lista.map(function (c, i) {
+  var q = norm($('q').value.trim()), qTel = q.replace(/\D/g, ''), palabras = q.split(/\s+/).filter(Boolean);
+  var lista = ultimosRes.filter(function (c) {
+    if (filtroEst && c.estatus !== filtroEst) return false;
+    if (ZONA_SEL && (c.zona || 'Sin zona') !== ZONA_SEL) return false;
+    if (!q) return true;
+    if (qTel.length >= 4 && qTel.length === q.replace(/\s/g, '').length && String(c.telefono).replace(/\D/g, '').indexOf(qTel) >= 0) return true;
+    var t = norm([c.codigo, c.nombre, c.direccion, c.colonia, c.encargado, c.telefono].join(' '));
+    return palabras.every(function (w) { return t.indexOf(w) >= 0; });
+  });
+  $('cuentaCli').textContent = lista.length + (lista.length === 1 ? ' cliente' : ' clientes');
+  if (!lista.length) { $('resultados').innerHTML = '<div class="vacio">' + (ultimosRes.length ? 'Ningún cliente coincide con la búsqueda.' : 'No hay clientes en tu ruta todavía.') + '</div>'; return; }
+  var html = '', zonaAnt = null, cuentas = {};
+  lista.forEach(function (c) { var z = c.zona || 'Sin zona'; cuentas[z] = (cuentas[z] || 0) + 1; });
+  lista.forEach(function (c) {
+    var z = c.zona || 'Sin zona';
+    if (z !== zonaAnt) {
+      html += '<div class="grupo"><span>' + esc(z) + ' · ' + cuentas[z] + '</span><small>' + esc(diasDeZona(z)) + '</small></div>';
+      zonaAnt = z;
+    }
     var ina = c.estatus === 'Inactivo';
-    return '<div class="res' + (ina ? ' inac' : '') + '" data-c="' + esc(c.codigo) + '"><div class="av">' + esc((c.nombre || '?').trim().charAt(0).toUpperCase()) + '</div>' +
-      '<div class="t"><div class="n">' + esc(c.nombre) + '</div><div class="s">' + esc(c.direccion) + (c.colonia ? ', ' + esc(c.colonia) : '') + ' · ' + esc(c.zona) + '</div></div>' +
+    html += '<div class="res' + (ina ? ' inac' : '') + '" data-c="' + esc(c.codigo) + '"><div class="av">' + esc((c.nombre || '?').trim().charAt(0).toUpperCase()) + '</div>' +
+      '<div class="t"><div class="n">' + esc(c.nombre) + '</div><div class="s">' + esc(c.direccion) + (c.colonia ? ', ' + esc(c.colonia) : '') + '</div></div>' +
       (ADMIN_NOMBRE && c.handy === 'Pendiente de actualizar' ? '<span class="badge pend" title="Pendiente de actualizar en Handy">⏳</span>' : '') +
       '<span class="badge ' + (ina ? 'ina' : 'act') + '">' + (ina ? 'Inactivo' : 'Activo') + '</span></div>';
-  }).join('');
+  });
+  $('resultados').innerHTML = html;
   Array.prototype.forEach.call(document.querySelectorAll('.res'), function (el) {
     el.onclick = function () {
       var cod = el.getAttribute('data-c');
