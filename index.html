@@ -367,6 +367,11 @@
   .exito .codigo { color: var(--navy); }
   .check { background: #e8f7ee; }
   .gmap { height: 330px; background: #e5e7eb; }
+  .dos label { white-space: nowrap; }
+  .ubica { display: none; margin-top: 12px; padding: 11px 13px; border-radius: 12px; font-size: 15.5px; line-height: 1.4; }
+  .ubica.busca { background: #eaf0ff; color: #1a3fb4; }
+  .ubica.ok { background: #e8f7ee; color: #14743a; }
+  .ubica.aviso { background: #fff6e0; color: #7a4a00; border: 1px solid #f6d98c; }
   .gmap iframe { width: 100%; height: 100%; border: 0; display: block; }
   .btn-ajustar, .btn-listo { margin: 0; border-radius: 0; font-size: 17.5px; }
   .btn-ajustar { background: #fff; color: var(--navy); border-top: 1px solid #e2e8f0; }
@@ -499,8 +504,8 @@
         <div class="eleg-campos">
           <div class="dos">
             <div>
-              <label for="numExt">Número exterior <span class="req">*</span></label>
-              <input id="numExt" class="sin-ic" inputmode="text" maxlength="12" placeholder="Ej. 528">
+              <label for="numExt">Número <span class="req">*</span></label>
+              <input id="numExt" class="sin-ic" inputmode="text" maxlength="12" placeholder="Ej. 221">
             </div>
             <div>
               <label for="cpEdit">Código postal <span class="req">*</span></label>
@@ -509,6 +514,7 @@
           </div>
           <div class="error-campo" id="e_num">Escribe el número exterior.</div>
           <div class="error-campo" id="e_cp">El código postal debe tener 5 números.</div>
+          <div class="ubica" id="ubicaNum"></div>
           <div id="colManual" style="display:none">
             <label for="coloniaManual">Colonia <span class="req">*</span></label>
             <input id="coloniaManual" class="sin-ic" placeholder="Google no trajo la colonia, escríbela">
@@ -538,7 +544,7 @@
         <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
       </div>
     </section>
-    <footer>Todos los campos son obligatorios · v3.2</footer>
+    <footer>Todos los campos son obligatorios · v3.3</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -764,7 +770,7 @@ function pintarSugerencias(res, msgVacio) {
   if (!res.length) { box.innerHTML = '<div class="sug sin-num">' + esc(msgVacio) + '</div>'; box.style.display = 'block'; return; }
   box.innerHTML = res.map(function (r, i) {
     return '<div class="sug" data-i="' + i + '">' + esc(r.etiqueta) +
-      (r.numero ? '' : '<small>Sin número: lo escribes en el siguiente paso</small>') + '</div>';
+      (r.numero ? '' : '<small>Google no tiene el número exacto: tócala y escribe el número</small>') + '</div>';
   }).join('');
   box.style.display = 'block';
   Array.prototype.forEach.call(box.querySelectorAll('.sug[data-i]'), function (el) {
@@ -774,13 +780,19 @@ function pintarSugerencias(res, msgVacio) {
   });
 }
 
+function numeroEscrito(texto, cp) {
+  var t = String(texto || '').split(/[\s,]+/).filter(function (x) { return /^\d{1,5}[a-zA-Z]?$/.test(x) && x !== cp; });
+  return t.length ? t[t.length - 1] : '';
+}
 function elegir(r) {
+  var escrito = r.origen === 'GPS' ? '' : numeroEscrito($('buscar').value, r.cp);
   direccion = r;
+  direccion.numGoogle = r.numero || '';
   $('sugerencias').style.display = 'none';
   $('buscar').value = r.etiqueta;
   $('d_calle').textContent = r.calle;
   $('d_colonia').textContent = r.colonia || '—'; $('d_ciudad').textContent = r.ciudad;
-  $('numExt').value = r.numero || ''; $('cpEdit').value = r.cp || '';
+  $('numExt').value = r.numero || escrito; $('cpEdit').value = r.cp || ''; $('ubicaNum').style.display = 'none';
   $('colManual').style.display = r.colonia ? 'none' : 'block';
   $('coloniaManual').value = '';
   ocultar('e_num'); ocultar('e_cp'); ocultar('pinOk'); ocultar('gpsAviso');
@@ -789,6 +801,7 @@ function elegir(r) {
   ocultar('e_direccion');
   modoAjuste(false); ponerGoogle(r.lat, r.lng);
   if (!r.numero) setTimeout(function () { $('numExt').focus(); }, 150);
+  if (!r.numero && escrito) { direccion.numero = escrito; ubicarNumero(); }
   revisar();
 }
 
@@ -878,8 +891,39 @@ $('btnListo').onclick = function () {
 function moverPin(lat, lng) {
   if (!direccion) return;
   direccion.lat = Math.round(lat * 1e7) / 1e7; direccion.lng = Math.round(lng * 1e7) / 1e7; direccion.ajustado = true;
-  mostrar('pinOk');
+  mostrar('pinOk'); if ($('numExt').value.trim()) msgUbica('ok', '✅ Usas el pin que acomodaste a mano.');
   clearTimeout(timerRev); timerRev = setTimeout(revisar, 600);
+}
+// Vuelve a preguntarle a Google por "calle + número" para mover el pin al número correcto
+var seqNum = 0, timerNum = null;
+function msgUbica(clase, html) { var u = $('ubicaNum'); u.className = 'ubica ' + clase; u.innerHTML = html; u.style.display = 'block'; }
+function normNum(x) { return String(x || '').toLowerCase().replace(/[^0-9a-z]/g, ''); }
+function ubicarNumero() {
+  if (!direccion) return;
+  var num = $('numExt').value.trim();
+  if (!num) { $('ubicaNum').style.display = 'none'; return; }
+  if (direccion.origen === 'GPS') { msgUbica('ok', '📍 Se usa tu ubicación GPS. Si el pin no está en la tienda, usa <b>Ajustar ubicación</b>.'); return; }
+  if (direccion.ajustado) { msgUbica('ok', '✅ Usas el pin que acomodaste a mano.'); return; }
+  if (normNum(num) === normNum(direccion.numGoogle)) { msgUbica('ok', '✅ Pin en el número ' + esc(num) + '.'); return; }
+  var d = direccion, mio = ++seqNum;
+  msgUbica('busca', 'Buscando el número ' + esc(num) + ' en Google Maps…');
+  var texto = d.calle + ' ' + num + ', ' + (d.colonia ? d.colonia + ', ' : '') + (d.cp || '') + ' ' + (d.ciudad || '');
+  api('buscar', { texto: texto }).then(function (res) {
+    if (mio !== seqNum || d !== direccion) return;
+    var calle = norm(d.calle);
+    var r = res.filter(function (x) { return normNum(x.numero) === normNum(num) && (norm(x.calle).indexOf(calle) >= 0 || calle.indexOf(norm(x.calle)) >= 0); })[0];
+    if (r) {
+      d.lat = r.lat; d.lng = r.lng; d.numGoogle = r.numero; if (r.etiqueta) d.etiqueta = r.etiqueta;
+      if (!$('cpEdit').value && r.cp) { $('cpEdit').value = r.cp; d.cp = r.cp; }
+      ponerGoogle(d.lat, d.lng); if (PIN && MAPA) { PIN.setLatLng([d.lat, d.lng]); MAPA.setView([d.lat, d.lng], 19); }
+      msgUbica('ok', '✅ Pin movido al número ' + esc(num) + '. Revisa que esté en la tienda.');
+      revisar();
+    } else {
+      msgUbica('aviso', '⚠️ Google no tiene registrado el <b>' + esc(num) + '</b> en esta calle. Revisa el mapa: si el pin no está en la tienda, toca <b>Ajustar ubicación</b> y acomódalo.');
+    }
+  }).catch(function () {
+    if (mio === seqNum) msgUbica('aviso', '⚠️ No se pudo buscar el número (señal débil). Si el pin no está en la tienda, usa <b>Ajustar ubicación</b>.');
+  });
 }
 function syncDir() {
   if (!direccion) return;
@@ -887,7 +931,8 @@ function syncDir() {
   direccion.cp = $('cpEdit').value.replace(/\D/g, '').slice(0, 5);
   clearTimeout(timerRev); timerRev = setTimeout(revisar, 700);
 }
-$('numExt').oninput = function () { ocultar('e_num'); this.classList.remove('invalido'); syncDir(); };
+$('numExt').oninput = function () { ocultar('e_num'); this.classList.remove('invalido'); syncDir(); clearTimeout(timerNum); timerNum = setTimeout(ubicarNumero, 900); };
+$('numExt').onblur = function () { clearTimeout(timerNum); ubicarNumero(); };
 $('cpEdit').oninput = function () { this.value = this.value.replace(/\D/g, '').slice(0, 5); ocultar('e_cp'); this.classList.remove('invalido'); syncDir(); };
 
 // ---------- GPS con instrucciones claras ----------
