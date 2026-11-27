@@ -368,6 +368,20 @@
   .check { background: #e8f7ee; }
   .gmap { height: 330px; background: #e5e7eb; }
   .dos label { white-space: nowrap; }
+  .cerca { display: none; margin-top: 14px; border-radius: 16px; padding: 14px; background: #eef4ff; border: 2px solid #c9d8fb; }
+  .cerca.parecido { background: #fff6e0; border-color: #f2c94c; }
+  .cerca-t { font-weight: 800; font-size: 17px; color: var(--navy); margin-bottom: 8px; }
+  .cerca.parecido .cerca-t { color: #8a5a00; }
+  .cerca-item { background: #fff; border-radius: 12px; padding: 11px 13px; }
+  .cerca-n { font-weight: 700; font-size: 16.5px; }
+  .cerca-d { font-size: 15px; color: #475569; margin-top: 2px; }
+  .cerca-mas { font-size: 14px; color: #475569; margin-top: 6px; }
+  .cerca-q { font-size: 15.5px; margin: 12px 0 10px; color: #1e293b; line-height: 1.4; }
+  .cerca-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cerca-btns .btn { padding: 13px 8px; font-size: 16px; border-radius: 12px; }
+  .btn-otro { background: var(--navy); color: #fff; }
+  .btn-mismo { background: #fff; color: #b42318; border: 2px solid #f1c0bb; }
+  .cerca-ok { display: none; font-size: 15.5px; color: #14743a; font-weight: 600; }
   .ubica { display: none; margin-top: 12px; padding: 11px 13px; border-radius: 12px; font-size: 15.5px; line-height: 1.4; }
   .ubica.busca { background: #eaf0ff; color: #1a3fb4; }
   .ubica.ok { background: #e8f7ee; color: #14743a; }
@@ -540,12 +554,17 @@
         <button type="button" class="btn btn-sec" id="btnCambiar">Cambiar dirección</button>
       </div>
       <div class="aviso rojo" id="avisoRojo"></div>
-      <div class="aviso amarillo" id="avisoAmarillo">
+      <div class="cerca" id="avisoAmarillo">
         <div id="avisoAmarilloTxt"></div>
-        <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
+        <input type="checkbox" id="confirmaDistinto" style="display:none">
+        <div class="cerca-btns" id="cercaBtns">
+          <button type="button" class="btn btn-otro" id="btnEsOtro">Sí, es otro negocio</button>
+          <button type="button" class="btn btn-mismo" id="btnEsMismo">No, es el mismo</button>
+        </div>
+        <div class="cerca-ok" id="cercaOk">✅ Listo: confirmaste que es <b>otro negocio</b>. <button type="button" class="link-btn" id="btnDeshacer">Cambiar</button></div>
       </div>
     </section>
-    <footer>Los campos con * son obligatorios · v3.5</footer>
+    <footer>Los campos con * son obligatorios · v3.6</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -744,6 +763,7 @@ $('telefono').oninput = function () {
   ocultar('e_telefono'); this.classList.remove('invalido');
 };
 $('telefono').onblur = function () { if (direccion) revisar(); };
+$('nombre').onblur = function () { if (direccion) revisar(); };
 $('nombre').oninput = function () { ocultar('e_nombre'); this.classList.remove('invalido'); };
 $('encargado').oninput = function () { ocultar('e_encargado'); this.classList.remove('invalido'); };
 
@@ -988,17 +1008,48 @@ function revisar() {
   var d = direccion;
   api('revisar', { direccion: d, telefono: $('telefono').value }).then(function (r) {
     if (d !== direccion) return;
-    pintarAvisos(r.bloqueos, r.avisos);
+    pintarAvisos(r.bloqueos, r.avisos, r.cercanos);
   }).catch(function () { /* se vuelve a revisar al guardar */ });
 }
 
-function pintarAvisos(bloqueos, avisos) {
+var VACIAS = ['ab', 'abts', 'abarrotes', 'abarrote', 'tienda', 'mini', 'super', 'minisuper', 'miscelanea', 'deposito', 'depo', 'la', 'el', 'los', 'las',
+  'de', 'del', 'y', 'don', 'dona', 'sr', 'sra', 'comercial', 'expendio', 'cremeria', 'bodega'];
+function palabrasNombre(n) { return norm(n).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(function (w) { return w.length >= 3 && VACIAS.indexOf(w) < 0; }); }
+function nombreParecido(a, b) { var x = palabrasNombre(a), y = palabrasNombre(b); return x.some(function (w) { return y.indexOf(w) >= 0; }); }
+
+function pintarAvisos(bloqueos, avisos, cercanos) {
   bloqueado = bloqueos && bloqueos.length > 0;
   if (bloqueado) { $('avisoRojo').innerHTML = '⛔ <b>No se puede dar de alta:</b><br>' + bloqueos.map(esc).join('<br>'); mostrar('avisoRojo'); }
   else ocultar('avisoRojo');
-  if (avisos && avisos.length) { $('avisoAmarilloTxt').innerHTML = '⚠️ <b>Posible cliente repetido:</b><br>' + avisos.map(esc).join('<br>'); mostrar('avisoAmarillo'); }
-  else ocultar('avisoAmarillo');
+  cercanos = cercanos || [];
+  if (!cercanos.length && avisos && avisos.length) cercanos = avisos.map(function (t) { return { texto: t }; });
+  if (!cercanos.length || bloqueado) { ocultar('avisoAmarillo'); $('confirmaDistinto').checked = false; return; }
+  var c = cercanos[0], nombreNuevo = $('nombre').value;
+  var parecido = c.nombre && nombreParecido(nombreNuevo, c.nombre);
+  var box = $('avisoAmarillo');
+  box.className = 'cerca' + (parecido ? ' parecido' : '');
+  var otros = cercanos.length - 1;
+  $('avisoAmarilloTxt').innerHTML = c.texto ? '<div class="cerca-t">📍 Hay un cliente muy cerca</div><div class="cerca-d">' + esc(c.texto) + '</div>' :
+    '<div class="cerca-t">' + (parecido ? '⚠️ ¿Es el mismo negocio?' : '📍 Hay un cliente muy cerca') + '</div>' +
+    '<div class="cerca-item"><div class="cerca-n">' + esc(c.nombre) + (c.inactivo ? ' <span class="badge ina">Inactivo</span>' : '') + '</div>' +
+    '<div class="cerca-d">A <b>' + c.distancia + ' m</b> · ' + esc(c.zona) + (c.direccion ? ' · ' + esc(c.direccion) : '') + '</div></div>' +
+    (otros > 0 ? '<div class="cerca-mas">y ' + otros + (otros === 1 ? ' cliente más' : ' clientes más') + ' a menos de 10 m</div>' : '') +
+    '<div class="cerca-q">' + (parecido ? 'El nombre se parece. Si es la misma tienda, <b>no la registres otra vez</b>.' :
+      (c.inactivo ? 'Ese cliente está inactivo. Si es la misma tienda, pide a un administrador que lo reactive.' : '¿Es un negocio diferente? (por ejemplo, otra tienda en la misma cuadra)')) + '</div>';
+  var conf = $('confirmaDistinto').checked;
+  $('cercaBtns').style.display = conf ? 'none' : 'grid';
+  $('cercaOk').style.display = conf ? 'block' : 'none';
+  mostrar('avisoAmarillo');
 }
+$('btnEsOtro').onclick = function () {
+  $('confirmaDistinto').checked = true; $('cercaBtns').style.display = 'none'; $('cercaOk').style.display = 'block'; ocultar('errorGeneral');
+};
+$('btnDeshacer').onclick = function () { $('confirmaDistinto').checked = false; $('cercaBtns').style.display = 'grid'; $('cercaOk').style.display = 'none'; };
+$('btnEsMismo').onclick = function () {
+  $('confirmaDistinto').checked = false;
+  limpiarDireccion(); $('buscar').parentNode.style.display = 'block'; $('buscar').value = '';
+  mostrarError('No se registró. Si es un cliente que ya existe, búscalo en la pestaña "Buscar cliente".');
+};
 
 // ---------- Guardar ----------
 $('btnGuardar').onclick = function () {
@@ -1018,7 +1069,7 @@ $('btnGuardar').onclick = function () {
     if (!direccion.colonia && $('coloniaManual').value.trim().length < 3) { mostrarError('Escribe la colonia.'); ok = false; }
   }
   if (bloqueado) { mostrarError('Este cliente ya existe. Revisa el aviso rojo.'); ok = false; }
-  if (!$('avisoAmarillo').style.display.match(/none|^$/) && !$('confirmaDistinto').checked) { mostrarError('Marca la casilla para confirmar que es un negocio distinto.'); ok = false; }
+  if (!$('avisoAmarillo').style.display.match(/none|^$/) && !$('confirmaDistinto').checked) { mostrarError('Hay un cliente muy cerca: contesta si es otro negocio.'); $('avisoAmarillo').scrollIntoView({ block: 'center' }); ok = false; }
   if (!ok) { var p = document.querySelector('.error-campo[style*="block"]'); if (p) p.scrollIntoView({ block: 'center' }); return; }
 
   var dir = JSON.parse(JSON.stringify(direccion));
@@ -1058,8 +1109,8 @@ function enviar(datos) {
       idEnvio = nuevoId(); LLAVE_LISTA = '';
       window.scrollTo(0, 0);
     } else if (r.requiereConfirmacion) {
-      pintarAvisos([], r.avisos);
-      mostrarError('Hay un cliente muy cerca. Confirma que es un negocio distinto.');
+      pintarAvisos([], r.avisos, r.cercanos);
+      mostrarError('Hay un cliente muy cerca: contesta si es otro negocio.');
     } else {
       if (r.duplicado) pintarAvisos(r.errores, []);
       mostrarError(r.errores.map(esc).join('<br>'), true);
