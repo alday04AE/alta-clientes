@@ -382,6 +382,10 @@
   .btn-otro { background: var(--navy); color: #fff; }
   .btn-mismo { background: #fff; color: #b42318; border: 2px solid #f1c0bb; }
   .cerca-ok { display: none; font-size: 15.5px; color: #14743a; font-weight: 600; }
+  .vacio-ruta { text-align: center; padding: 22px 6px 6px; }
+  .vr-ic { font-size: 42px; margin-bottom: 8px; }
+  .vr-t { font-size: 18.5px; font-weight: 800; color: var(--navy); }
+  .vr-d { font-size: 16px; color: #475569; margin: 6px 0 18px; line-height: 1.4; }
   .ubica { display: none; margin-top: 12px; padding: 11px 13px; border-radius: 12px; font-size: 15.5px; line-height: 1.4; }
   .ubica.busca { background: #eaf0ff; color: #1a3fb4; }
   .ubica.ok { background: #e8f7ee; color: #14743a; }
@@ -564,7 +568,7 @@
         <div class="cerca-ok" id="cercaOk">✅ Listo: confirmaste que es <b>otro negocio</b>. <button type="button" class="link-btn" id="btnDeshacer">Cambiar</button></div>
       </div>
     </section>
-    <footer>Los campos con * son obligatorios · v3.6</footer>
+    <footer>Los campos con * son obligatorios · v3.7</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -1251,7 +1255,14 @@ function pintarResultados() {
     return palabras.every(function (w) { return t.indexOf(w) >= 0; });
   });
   $('cuentaCli').textContent = lista.length + (lista.length === 1 ? ' cliente' : ' clientes');
-  if (!lista.length) { $('resultados').innerHTML = '<div class="vacio">' + (ultimosRes.length ? 'Ningún cliente coincide con la búsqueda.' : 'No hay clientes en tu ruta todavía.') + '</div>'; return; }
+  if (!ultimosRes.length) {
+    $('cuentaCli').textContent = '';
+    $('resultados').innerHTML = '<div class="vacio-ruta"><div class="vr-ic">🏪</div><div class="vr-t">Todavía no tienes clientes en tu ruta</div>' +
+      '<div class="vr-d">Aquí irán apareciendo los clientes que des de alta.</div>' +
+      '<button type="button" class="btn btn-pri" onclick="cambiarModo(\'nuevo\'); window.scrollTo(0, 0);">+ Dar de alta un cliente</button></div>';
+    return;
+  }
+  if (!lista.length) { $('resultados').innerHTML = '<div class="vacio">Ningún cliente coincide con la búsqueda.</div>'; return; }
   var html = '', zonaAnt = null, cuentas = {};
   lista.forEach(function (c) { var z = c.zona || 'Sin zona'; cuentas[z] = (cuentas[z] || 0) + 1; });
   lista.forEach(function (c) {
