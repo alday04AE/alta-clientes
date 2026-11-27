@@ -449,19 +449,20 @@
       </div>
       <div class="error-campo" id="e_nombre">Escribe el nombre del negocio.</div>
 
-      <label for="encargado">Encargado o dueño <span class="req">*</span></label>
+      <label for="encargado">Encargado o dueño <span class="opc">(opcional)</span></label>
       <div class="campo">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
         <input id="encargado" maxlength="60" placeholder="Ej. Juan Pérez">
       </div>
       <div class="error-campo" id="e_encargado">Escribe el nombre del encargado.</div>
 
-      <label for="telefono">Teléfono <span class="req">*</span></label>
+      <label for="telefono">Teléfono <span class="opc">(opcional)</span></label>
       <div class="campo">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
         <input id="telefono" type="tel" inputmode="numeric" maxlength="14" placeholder="81 1234 5678">
       </div>
-      <div class="error-campo" id="e_telefono">El teléfono debe tener exactamente 10 dígitos.</div>
+      <div class="error-campo" id="e_telefono">El teléfono debe tener exactamente 10 dígitos, o déjalo vacío.</div>
+      <div class="ayuda">Si el cliente no quiere dar su nombre o teléfono, déjalos en blanco. El nombre del negocio y la ubicación sí son obligatorios.</div>
 
       <label for="notas">Notas internas <span class="opc">(opcional)</span></label>
       <div class="chips-nota" id="chipsNota">
@@ -544,7 +545,7 @@
         <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
       </div>
     </section>
-    <footer>Todos los campos son obligatorios · v3.4</footer>
+    <footer>Los campos con * son obligatorios · v3.5</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -1008,8 +1009,7 @@ $('btnGuardar').onclick = function () {
   if (!$('ruta').value) { mostrar('e_ruta'); ok = false; }
   if (!frecuencia) { mostrar('e_frecuencia'); ok = false; }
   if ($('nombre').value.trim().length < 2) { mostrar('e_nombre'); $('nombre').classList.add('invalido'); ok = false; }
-  if ($('encargado').value.trim().length < 2) { mostrar('e_encargado'); $('encargado').classList.add('invalido'); ok = false; }
-  if (tel.length !== 10) { mostrar('e_telefono'); $('telefono').classList.add('invalido'); ok = false; }
+  if (tel.length && tel.length !== 10) { mostrar('e_telefono'); $('telefono').classList.add('invalido'); ok = false; }
   if (!direccion) { mostrar('e_direccion'); ok = false; }
   else {
     syncDir();
@@ -1035,7 +1035,7 @@ function abrirResumen(d) {
   $('resZona').innerHTML = '<div><div style="font-size:12px;opacity:.8">Ruta y frecuencia</div><div class="z">' + esc(d.ruta) + ' · ' + esc(d.frecuencia) +
     '</div></div><div class="d">' + esc(f.dias || '') + '</div>';
   var tel = d.telefono.replace(/^(\d{2})(\d{4})(\d{4})$/, '$1 $2 $3');
-  var filas = [['Negocio', d.nombre], ['Encargado', d.encargado], ['Teléfono', tel],
+  var filas = [['Negocio', d.nombre], ['Encargado', d.encargado || 'No lo dio'], ['Teléfono', tel || 'No lo dio'],
     ['Dirección', d.direccion.calle + ' ' + d.direccion.numero], ['Colonia', d.direccion.colonia],
     ['C.P. / Mpio.', d.direccion.cp + ' · ' + d.direccion.ciudad], ['Vendedor', d.vendedor]];
   if (d.notas) filas.push(['Notas', d.notas]);
