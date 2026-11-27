@@ -366,6 +366,11 @@
   .admin-banner { background: linear-gradient(90deg, #0a1a3f, #132b66); border-radius: 12px; font-size: 14px; }
   .exito .codigo { color: var(--navy); }
   .check { background: #e8f7ee; }
+  .gmap { height: 330px; background: #e5e7eb; }
+  .gmap iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .btn-ajustar, .btn-listo { margin: 0; border-radius: 0; font-size: 17.5px; }
+  .btn-ajustar { background: #fff; color: var(--navy); border-top: 1px solid #e2e8f0; }
+  .btn-listo { background: #16a34a; color: #fff; }
   footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 6px; }
 </style>
 </head>
@@ -509,8 +514,11 @@
             <input id="coloniaManual" class="sin-ic" placeholder="Google no trajo la colonia, escríbela">
           </div>
         </div>
-        <div class="mapa-ayuda">📍 <b>Revisa el pin.</b> Si no está justo en la tienda, <b>arrástralo</b> con el dedo o <b>toca el mapa</b> donde está.</div>
-        <div class="mapa-wrap">
+        <div class="mapa-ayuda" id="ayudaG">📍 <b>Así se ve en Google Maps.</b> Si el pin rojo no está justo en la tienda, toca <b>Ajustar ubicación</b>.</div>
+        <div class="gmap" id="gmap"></div>
+        <button type="button" class="btn btn-ajustar" id="btnAjustar">✋ Ajustar ubicación</button>
+        <div class="mapa-ayuda" id="ayudaA" style="display:none">✋ <b>Arrastra el pin</b> con el dedo o <b>toca el mapa</b> justo donde está la tienda. Luego toca <b>Listo</b>.</div>
+        <div class="mapa-wrap" id="mapaWrap" style="display:none">
           <div id="mapa" class="mapa"></div>
           <div class="capas" id="capas">
             <button type="button" class="capa activa" data-c="sat">Satélite</button>
@@ -520,6 +528,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
           </button>
         </div>
+        <button type="button" class="btn btn-listo" id="btnListo" style="display:none">✓ Listo, ver en Google Maps</button>
         <div class="pin-ok" id="pinOk">✅ Ubicación ajustada. Se guardará donde dejaste el pin.</div>
         <button type="button" class="btn btn-sec" id="btnCambiar">Cambiar dirección</button>
       </div>
@@ -529,7 +538,7 @@
         <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
       </div>
     </section>
-    <footer>Todos los campos son obligatorios · v3.1</footer>
+    <footer>Todos los campos son obligatorios · v3.2</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -778,7 +787,7 @@ function elegir(r) {
   $('elegida').style.display = 'block';
   $('buscar').parentNode.style.display = 'none';
   ocultar('e_direccion');
-  ponerMapa(r.lat, r.lng);
+  modoAjuste(false); ponerGoogle(r.lat, r.lng);
   if (!r.numero) setTimeout(function () { $('numExt').focus(); }, 150);
   revisar();
 }
@@ -846,6 +855,26 @@ function ponerMapa(lat, lng) {
   }
   setTimeout(function () { MAPA.invalidateSize(); }, 120);
 }
+function ponerGoogle(lat, lng) {
+  $('gmap').innerHTML = '<iframe title="Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=' +
+    lat + ',' + lng + '&z=19&hl=es&output=embed"></iframe>';
+}
+function modoAjuste(on) {
+  $('gmap').style.display = on ? 'none' : 'block';
+  $('ayudaG').style.display = on ? 'none' : 'block';
+  $('btnAjustar').style.display = on ? 'none' : 'flex';
+  $('ayudaA').style.display = on ? 'block' : 'none';
+  $('mapaWrap').style.display = on ? 'block' : 'none';
+  $('btnListo').style.display = on ? 'flex' : 'none';
+}
+$('btnAjustar').onclick = function () {
+  if (!direccion) return;
+  modoAjuste(true); ponerMapa(direccion.lat, direccion.lng);
+};
+$('btnListo').onclick = function () {
+  modoAjuste(false); if (direccion) ponerGoogle(direccion.lat, direccion.lng);
+  $('gmap').scrollIntoView({ block: 'center', behavior: 'smooth' });
+};
 function moverPin(lat, lng) {
   if (!direccion) return;
   direccion.lat = Math.round(lat * 1e7) / 1e7; direccion.lng = Math.round(lng * 1e7) / 1e7; direccion.ajustado = true;
