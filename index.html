@@ -544,7 +544,7 @@
         <label><input type="checkbox" id="confirmaDistinto"> Confirmo que es un negocio distinto</label>
       </div>
     </section>
-    <footer>Todos los campos son obligatorios · v3.3</footer>
+    <footer>Todos los campos son obligatorios · v3.4</footer>
 
     <div class="barra">
       <div class="barra-in">
@@ -1137,7 +1137,7 @@ Array.prototype.forEach.call(document.querySelectorAll('#filtroEst .chip'), func
   };
 });
 
-var LLAVE_LISTA = '', ZONA_SEL = '';
+var LLAVE_LISTA = '', ZONA_SEL = '', ERR_LISTA = '';
 function cargarLista(forzar) {
   var v = $('vendedor').value;
   if (!ADMIN_NOMBRE && !v) { $('resultados').innerHTML = '<div class="vacio">Primero selecciona tu nombre arriba.</div>'; return; }
@@ -1148,11 +1148,15 @@ function cargarLista(forzar) {
   api('listaClientes', { vendedor: v, pin: ADMIN_PIN }).then(function (res) {
     if (mio !== seqCli) return;
     $('buscandoCli').style.display = 'none';
-    ultimosRes = res; LLAVE_LISTA = llave; ZONA_SEL = ''; pintarZonas(); pintarResultados();
+    ERR_LISTA = ''; ultimosRes = res; LLAVE_LISTA = llave; ZONA_SEL = ''; pintarZonas(); pintarResultados();
   }).catch(function (e) {
     if (mio !== seqCli) return;
     $('buscandoCli').style.display = 'none'; if (/PIN/.test(e.message)) salirAdmin();
-    $('resultados').innerHTML = '<div class="vacio">' + esc(e.message) + '<br><br><button type="button" class="btn btn-sec" onclick="cargarLista(true)">Reintentar</button></div>';
+    ultimosRes = []; LLAVE_LISTA = '';
+    ERR_LISTA = /no v[aá]lida/i.test(e.message)
+      ? 'El servidor no tiene el código más reciente. El administrador debe pegar el Codigo.gs nuevo en Apps Script y publicar una Nueva versión.'
+      : e.message;
+    pintarResultados();
   });
 }
 function buscarCli() { cargarLista(true); }
@@ -1180,6 +1184,12 @@ function diasDeZona(z) {
 }
 
 function pintarResultados() {
+  if (ERR_LISTA) {
+    $('cuentaCli').textContent = '';
+    $('resultados').innerHTML = '<div class="aviso rojo" style="display:block"><b>No se pudo cargar la lista</b><br>' + esc(ERR_LISTA) +
+      '</div><button type="button" class="btn btn-sec" onclick="cargarLista(true)">Reintentar</button>';
+    return;
+  }
   var q = norm($('q').value.trim()), qTel = q.replace(/\D/g, ''), palabras = q.split(/\s+/).filter(Boolean);
   var lista = ultimosRes.filter(function (c) {
     if (filtroEst && c.estatus !== filtroEst) return false;
